@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:SmartFilterViewer"
         mc:Ignorable="d"
         Title="MainWindow" Height="563.5" Width="526"
+        Loaded="Window_Loaded"
         Closed="Window_Closed">
     <Grid>
         <Grid.RowDefinitions>
@@ -52,5 +53,6 @@
             <Label x:Name="PlaybackSpeedLabel" Content="1x" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <Button Content="Reset Zoom" Width="75" Click="ResetZoomBtn_Click"/>
         </StackPanel>
+        <ComboBox x:Name="ValuesComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Grid.Row="0" SelectionChanged="ValuesComboBox_SelectionChanged"/>
     </Grid>
 </Window>

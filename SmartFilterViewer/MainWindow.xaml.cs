@@ -121,7 +121,7 @@ namespace SmartFilterViewer
 
             Application.Current.Dispatcher.Invoke(() =>
             {
-                if (IsLoaded)
+                if (IsLoaded && dataTimeInMillisec > 0)
                 {
                     var currentTimestamp = currentDataTime - dataStartTime;
                     TimestampLabel.Content = $"{(currentTimestamp < TimeSpan.Zero ? "-" : "")}{currentTimestamp:hh\\:mm\\:ss}";
@@ -252,6 +252,7 @@ namespace SmartFilterViewer
         private void TimelineGraph_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             mouseDownPos = e.GetPosition(TimelineGraph);
+            TimelineGraph.CaptureMouse();
             e.Handled = true;
         }
 
@@ -262,6 +263,11 @@ namespace SmartFilterViewer
 
         private void TimelineGraph_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (!TimelineGraph.IsMouseCaptured)
+                return;
+
+            TimelineGraph.ReleaseMouseCapture();
+
             var upPosX = e.GetPosition(TimelineGraph).X;
             var upScaledPosX = pointToScaledRelPos(upPosX, TimelineGraph.ActualWidth);
 
@@ -296,7 +302,7 @@ namespace SmartFilterViewer
         {
             var pos = e.GetPosition(TimelineGraph);
 
-            if (e.LeftButton == MouseButtonState.Pressed && Math.Abs(pos.X - mouseDownPos.X) > SystemParameters.MinimumHorizontalDragDistance)
+            if (e.LeftButton == MouseButtonState.Pressed && Math.Abs(pos.X - mouseDownPos.X) > SystemParameters.MinimumHorizontalDragDistance && TimelineGraph.IsMouseCaptured)
             {
                 DrawZoomIndicators(e.GetPosition(TimelineGraph));
             }
@@ -315,17 +321,18 @@ namespace SmartFilterViewer
         private void Sensor_MouseUp(object sender, MouseButtonEventArgs e)
         {
             timer.Enabled = false;
-            var shape = sender as Shape;
-            if (!sensorInfos.TryGetValue(shape, out SensorInfo info))
-            {
-                info = new SensorInfo { Shape = shape, GraphColor = colors[sensorInfos.Count] };
-                shape.Stroke = new SolidColorBrush(info.GraphColor);
-                sensorInfos.Add(shape, info);
-            }
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
+                var shape = sender as Shape;
+                if (!sensorInfos.TryGetValue(shape, out SensorInfo info))
+                {
+                    info = new SensorInfo { Shape = shape, GraphColor = colors[sensorInfos.Count] };
+                    shape.Stroke = new SolidColorBrush(info.GraphColor);
+                    sensorInfos.Add(shape, info);
+                }
+
                 info.FileName = openFileDialog.FileName;
 
                 var allLines = File.ReadAllLines(info.FileName);
@@ -346,7 +353,7 @@ namespace SmartFilterViewer
 
                 dataTimeInMillisec = (dataEndTime - dataStartTime).TotalMilliseconds;
 
-                maxValue = sensorInfos.Values.SelectMany(x => x.DataList).Select(x => GetValue(x)).Max();
+                CalcMaxValue();
 
                 DrawDataToGraph();
             }
@@ -354,10 +361,43 @@ namespace SmartFilterViewer
             timer.Enabled = true;
         }
 
+        private void CalcMaxValue()
+        {
+            if (sensorInfos.Any())
+                maxValue = sensorInfos.Values.SelectMany(x => x.DataList).Select(x => GetValue(x)).Max();
+        }
+
         private void ResetZoomBtn_Click(object sender, RoutedEventArgs e)
         {
             graphZoomfactor = 1;
             graphOffset = 0;
+            DrawDataToGraph();
+        }
+
+        class PropertyDropdownItem
+        {
+            public PropertyInfo PropertyInfo { get; set; }
+
+            public override string ToString()
+            {
+                var attr = Attribute.GetCustomAttribute(PropertyInfo, typeof(NiceNameAttribute)) as NiceNameAttribute;
+                return attr?.Name ?? PropertyInfo.Name;
+            }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var dropDownItems = typeof(SensorData).GetProperties()
+                .Where(x => Attribute.GetCustomAttribute(x, typeof(NiceNameAttribute)) != null)
+                .Select(x => new PropertyDropdownItem { PropertyInfo = x }).ToList();
+            ValuesComboBox.ItemsSource = dropDownItems;
+            ValuesComboBox.SelectedItem = dropDownItems.FirstOrDefault(x => x.PropertyInfo == propInfo);
+        }
+
+        private void ValuesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            propInfo = (ValuesComboBox.SelectedItem as PropertyDropdownItem).PropertyInfo;
+            CalcMaxValue();
             DrawDataToGraph();
         }
     }
