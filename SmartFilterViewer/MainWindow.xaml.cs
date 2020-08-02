@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -22,13 +23,17 @@ using System.Windows.Shapes;
 
 namespace SmartFilterViewer
 {
-    public class SensorInfo
+    class SensorInfo
     {
-        public SensorDataList DataList { get; }
+        public SensorDataList DataList { get; set; }
 
-        public Color GraphColor { get; }
+        public Color GraphColor { get; set; }
 
-        public Shape Shape { get; }
+        public Shape Shape { get; set; }
+
+        public Stroke Stroke { get; set; }
+
+        public string FileName { get; set; }
     }
 
 
@@ -37,24 +42,26 @@ namespace SmartFilterViewer
     /// </summary>
     public partial class MainWindow : Window
     {
-        SensorDataList records;
+        Dictionary<Shape, SensorInfo> sensorInfos;
         Timer timer;
+
         DateTime currentDataTime;
         DateTime lastTimerTick;
-        double playbackFactor;
+        DateTime dataStartTime;
         double dataTimeInMillisec;
-        Stroke dataStroke;
-        Stroke timeStroke;
+        double playbackFactor;
 
+        Stroke timeStroke;
         Stroke zoomIndocator1;
         Stroke zoomIndocator2;
 
         Point mouseDownPos;
-
         double graphOffset;
         double graphZoomfactor;
 
         double maxValue;
+
+        PropertyInfo propInfo;
 
         public MainWindow()
         {
@@ -69,6 +76,10 @@ namespace SmartFilterViewer
             playbackFactor = 1;
             graphOffset = 0;
             graphZoomfactor = 1;
+
+            sensorInfos = new Dictionary<Shape, SensorInfo>();
+
+            propInfo = typeof(SensorData).GetProperty(nameof(SensorData.PM2_5_ug_m3));
         }
 
         
@@ -78,109 +89,78 @@ namespace SmartFilterViewer
             currentDataTime += TimeSpan.FromMilliseconds((e.SignalTime - lastTimerTick).TotalMilliseconds * playbackFactor);
             lastTimerTick = e.SignalTime;
 
-            double lerpIdx = records.FindLerpIndex(currentDataTime);
-
-            double value = records.GetLerpValue(lerpIdx, nameof(SensorData.PM2_5_ug_m3));
-
-            int i = (int)Math.Floor(lerpIdx);
-            var lastLookahead = i + 5;
-            for (; i < records.Count && i <= lastLookahead; i++)
+            foreach (var info in sensorInfos.Values)
             {
-                SensorData record = records[i];
-                if (record.PM2_5_ug_m3 > 90)
+                double lerpIdx = info.DataList.FindLerpIndex(currentDataTime);
+                double value = info.DataList.GetLerpValue(lerpIdx, propInfo);
+
+                int i = (int)Math.Floor(lerpIdx);
+                var lastLookahead = i + 5;
+                for (; i < info.DataList.Count && i <= lastLookahead; i++)
                 {
-                    playbackFactor = Math.Min(playbackFactor, 1);
-                    break;
+                    SensorData record = info.DataList[i];
+                    if (record.PM2_5_ug_m3 > 90)
+                    {
+                        playbackFactor = Math.Min(playbackFactor, 1);
+                        break;
+                    }
                 }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (IsLoaded)
+                    {
+                        var factor = value / maxValue;
+                        factor = Math.Pow(factor, 0.3);
+                        info.Shape.Fill = new SolidColorBrush(HsvColor.FromHSV((float)((1 - factor) * 120), 1, 1));
+
+                        PlaybackSpeedSlider.Value = playbackFactor;
+                    }
+                });
             }
 
-            var currentTimestamp = currentDataTime - records.First().DateTime;
             Application.Current.Dispatcher.Invoke(() =>
             {
                 if (IsLoaded)
                 {
+                    var currentTimestamp = currentDataTime - dataStartTime;
                     TimestampLabel.Content = $"{(currentTimestamp < TimeSpan.Zero ? "-" : "")}{currentTimestamp:hh\\:mm\\:ss}";
 
                     var progress = currentTimestamp.TotalMilliseconds / dataTimeInMillisec;
                     PlaybackProgressBar.Value = progress;
-
-                    var factor = value / maxValue;
-                    factor = Math.Pow(factor, 0.3);
-                    Sensor1.Fill = new SolidColorBrush(HsvColor.FromHSV((float)((1 - factor) * 120), 1, 1));
-
-                    PlaybackSpeedSlider.Value = playbackFactor;
 
                     DrawTimeStroke();
                 }
             });
         }
 
-        private void BrowseBtn_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
-                fileSelectEdit.Text = openFileDialog.FileName;
-        }
-
-        private void ReadDataBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (File.Exists(fileSelectEdit.Text))
-            {
-                var allLines = File.ReadAllLines(fileSelectEdit.Text);
-                var dataLines = allLines.SkipWhile(x => !x.StartsWith("OADateTime"))
-                    .Skip(1);
-
-                using (var reader = new StringReader(string.Join("\n", dataLines)))
-                using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
-                {
-                    csv.Configuration.HasHeaderRecord = false;
-                    records = new SensorDataList(csv.GetRecords<SensorData>());
-                }
-
-                dataTimeInMillisec = (records.Last().DateTime - records.First().DateTime).TotalMilliseconds;
-
-                maxValue = records.Select(x => x.PM2_5_ug_m3).Max();
-
-                currentDataTime = records.First().DateTime;
-
-                DrawDataToGraph();
-            }
-            else
-            {
-                MessageBox.Show($"Datei {fileSelectEdit.Text} nicht gefunden");
-            }
-        }
-
         private void DrawDataToGraph()
         {
-            if (records == null)
-                return;
-
-            var points = new StylusPointCollection();
-            var startTime = records.First().DateTime;
-            foreach (var record in records)
+            foreach (var info in sensorInfos.Values)
             {
-                var xFactor = (record.DateTime - startTime).TotalMilliseconds / dataTimeInMillisec;
-                var yFactor = 1 - record.PM2_5_ug_m3 / maxValue;
+                var points = new StylusPointCollection();
+                foreach (var dataPoint in info.DataList)
+                {
+                    var xFactor = (dataPoint.DateTime - dataStartTime).TotalMilliseconds / dataTimeInMillisec;
+                    var yFactor = 1 - GetValue(dataPoint) / maxValue;
 
-                var xPos = (xFactor - graphOffset) * graphZoomfactor * TimelineGraph.ActualWidth;
-                var yPos = yFactor * TimelineGraph.ActualHeight;
+                    var xPos = (xFactor - graphOffset) * graphZoomfactor * TimelineGraph.ActualWidth;
+                    var yPos = yFactor * TimelineGraph.ActualHeight;
 
-                points.Add(new StylusPoint(xPos, yPos));
+                    points.Add(new StylusPoint(xPos, yPos));
+                }
+                info.Stroke = DrawStroke(points, info.GraphColor, info.Stroke);
             }
-            TimelineGraph.Strokes.Remove(dataStroke);
-            dataStroke = new Stroke(points, new DrawingAttributes { Color = Colors.SkyBlue });
-            TimelineGraph.Strokes.Add(dataStroke);
 
             DrawTimeStroke();
         }
 
         private void DrawTimeStroke()
         {
-            if (records == null)
+            if (dataTimeInMillisec == 0)
                 return;
 
-            var currentTimestamp = currentDataTime - records.First().DateTime;
+            var currentTimestamp = currentDataTime - dataStartTime;
             var progress = currentTimestamp.TotalMilliseconds / dataTimeInMillisec;
 
             var scaledProgress = graphZoomfactor * (progress - graphOffset);
@@ -189,9 +169,7 @@ namespace SmartFilterViewer
             points.Add(new StylusPoint(TimelineGraph.ActualWidth * scaledProgress, 0));
             points.Add(new StylusPoint(TimelineGraph.ActualWidth * scaledProgress, TimelineGraph.ActualHeight));
 
-            TimelineGraph.Strokes.Remove(timeStroke);
-            timeStroke = new Stroke(points, new DrawingAttributes { Color = Colors.Red });
-            TimelineGraph.Strokes.Add(timeStroke);
+            timeStroke = DrawStroke(points, Colors.Red, timeStroke);
         }
 
         private void DrawZoomIndicators(Point end)
@@ -200,22 +178,31 @@ namespace SmartFilterViewer
             points.Add(new StylusPoint(mouseDownPos.X, 0));
             points.Add(new StylusPoint(mouseDownPos.X, TimelineGraph.ActualHeight));
 
-            TimelineGraph.Strokes.Remove(zoomIndocator1);
-            zoomIndocator1 = new Stroke(points, new DrawingAttributes { Color = Colors.Black });
-            TimelineGraph.Strokes.Add(zoomIndocator1);
+            zoomIndocator1 = DrawStroke(points, Colors.Black, zoomIndocator1);
 
             points = new StylusPointCollection();
             points.Add(new StylusPoint(end.X, 0));
             points.Add(new StylusPoint(end.X, TimelineGraph.ActualHeight));
 
-            TimelineGraph.Strokes.Remove(zoomIndocator2);
-            zoomIndocator2 = new Stroke(points, new DrawingAttributes { Color = Colors.Black });
-            TimelineGraph.Strokes.Add(zoomIndocator2);
+            zoomIndocator2 = DrawStroke(points, Colors.Black, zoomIndocator2);
+        }
+
+        private Stroke DrawStroke(StylusPointCollection points, Color color, Stroke oldStroke)
+        {
+            TimelineGraph.Strokes.Remove(oldStroke);
+            var result = new Stroke(points, new DrawingAttributes { Color = color });
+            TimelineGraph.Strokes.Add(result);
+            return result;
+        }
+
+        private double GetValue(SensorData data)
+        {
+            return (double)propInfo.GetValue(data);
         }
 
         private void JumpToRelPos(double pos)
         {
-            currentDataTime = records.First().DateTime + TimeSpan.FromMilliseconds(dataTimeInMillisec * pos);
+            currentDataTime = dataStartTime + TimeSpan.FromMilliseconds(dataTimeInMillisec * pos);
             DrawTimeStroke();
         }
 
@@ -236,7 +223,7 @@ namespace SmartFilterViewer
         {
             var clickpos = (double)e.GetPosition(PlaybackProgressBar).X / PlaybackProgressBar.ActualWidth;
 
-            currentDataTime = records.First().DateTime + TimeSpan.FromMilliseconds(dataTimeInMillisec * clickpos);
+            currentDataTime = dataStartTime + TimeSpan.FromMilliseconds(dataTimeInMillisec * clickpos);
         }
 
         private void TimelineGraph_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -321,6 +308,57 @@ namespace SmartFilterViewer
                 zoomIndocator1 = null;
                 zoomIndocator2 = null;
             }
+        }
+
+        private Color[] colors = new[] { Colors.SkyBlue, Colors.Orange, Colors.Cyan, Colors.Gold, Colors.Fuchsia, Colors.Indigo, Colors.Lime, Colors.Lavender, Colors.Silver };
+
+        private void Sensor_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            timer.Enabled = false;
+            var shape = sender as Shape;
+            if (!sensorInfos.TryGetValue(shape, out SensorInfo info))
+            {
+                info = new SensorInfo { Shape = shape, GraphColor = colors[sensorInfos.Count] };
+                shape.Stroke = new SolidColorBrush(info.GraphColor);
+                sensorInfos.Add(shape, info);
+            }
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                info.FileName = openFileDialog.FileName;
+
+                var allLines = File.ReadAllLines(info.FileName);
+                var dataLines = allLines.SkipWhile(x => !x.StartsWith("OADateTime"))
+                    .Skip(1);
+
+                using (var reader = new StringReader(string.Join("\n", dataLines)))
+                using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
+                {
+                    csv.Configuration.HasHeaderRecord = false;
+                    info.DataList = new SensorDataList(csv.GetRecords<SensorData>());
+                }
+
+                dataStartTime = sensorInfos.Values.Select(x => x.DataList.First().DateTime).Min();
+                currentDataTime = dataStartTime;
+
+                var dataEndTime = sensorInfos.Values.Select(x => x.DataList.Last().DateTime).Max();
+
+                dataTimeInMillisec = (dataEndTime - dataStartTime).TotalMilliseconds;
+
+                maxValue = sensorInfos.Values.SelectMany(x => x.DataList).Select(x => GetValue(x)).Max();
+
+                DrawDataToGraph();
+            }
+            lastTimerTick = DateTime.Now;
+            timer.Enabled = true;
+        }
+
+        private void ResetZoomBtn_Click(object sender, RoutedEventArgs e)
+        {
+            graphZoomfactor = 1;
+            graphOffset = 0;
+            DrawDataToGraph();
         }
     }
 }

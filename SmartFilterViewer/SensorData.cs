@@ -3,21 +3,20 @@ using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace SmartFilterViewer
 {
-    public class SensorDataList : List<SensorData>
+    class SensorDataList : List<SensorData>
     {
         public SensorDataList(IEnumerable<SensorData> data) : base(data)
         {}
 
-        public double GetLerpValue(double idx, string property)
+        public double GetLerpValue(double idx, PropertyInfo propInfo)
         {
-            var propInfo = typeof(SensorData).GetProperty(property);
-
             int idx1 = (int)Math.Floor(idx);
             int idx2 = (int)Math.Ceiling(idx);
 
