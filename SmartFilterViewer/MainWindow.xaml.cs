@@ -25,15 +25,39 @@ namespace SmartFilterViewer
 {
     class SensorInfo
     {
-        public SensorDataList DataList { get; set; }
+        private SensorDataList dataList;
+        private Color graphColor;
 
-        public Color GraphColor { get; set; }
+        public SensorDataList DataList
+        {
+            get => dataList;
+            set
+            {
+                dataList = value;
+                HistogramWindow.SensorDataList = value;
+            }
+        }
+
+        public Color GraphColor
+        {
+            get => graphColor;
+            set
+            {
+                graphColor = value;
+                Shape.Stroke = new SolidColorBrush(graphColor);
+                Stroke.DrawingAttributes.Color = graphColor;
+            }
+        }
 
         public Shape Shape { get; set; }
 
-        public Stroke Stroke { get; set; }
+        public Stroke Stroke { get; set; } = MainWindow.MakeEmptyStroke();
 
         public string FileName { get; set; }
+
+        public HistogramWindow HistogramWindow { get; set; } = new HistogramWindow();
+
+        public bool HasData => DataList != null;
     }
 
 
@@ -50,6 +74,7 @@ namespace SmartFilterViewer
         DateTime dataStartTime;
         double dataTimeInMillisec;
         double playbackFactor;
+        bool isPaused;
 
         Stroke timeStroke;
         Stroke zoomIndocator1;
@@ -62,6 +87,8 @@ namespace SmartFilterViewer
         double maxValue;
 
         PropertyInfo propInfo;
+
+        private IEnumerable<SensorInfo> ValidSensorInfos => sensorInfos.Values.Where(x => x.DataList != null);
 
         public MainWindow()
         {
@@ -80,33 +107,44 @@ namespace SmartFilterViewer
             sensorInfos = new Dictionary<Shape, SensorInfo>();
 
             propInfo = typeof(SensorData).GetProperty(nameof(SensorData.PM2_5_ug_m3));
+
+            timeStroke = MakeEmptyStroke();
+            timeStroke.DrawingAttributes.Color = Colors.Red;
         }
 
+        static public Stroke MakeEmptyStroke()
+        {
+            return new Stroke(new StylusPointCollection(new[] { new Point(-100, -100) }));
+        }
         
 
         private void ProcessTimerTick(object sender, ElapsedEventArgs e)
         {
-            currentDataTime += TimeSpan.FromMilliseconds((e.SignalTime - lastTimerTick).TotalMilliseconds * playbackFactor);
+            if (!isPaused)
+                currentDataTime += TimeSpan.FromMilliseconds((e.SignalTime - lastTimerTick).TotalMilliseconds * playbackFactor);
+            
             lastTimerTick = e.SignalTime;
 
-            foreach (var info in sensorInfos.Values)
+            foreach (var info in ValidSensorInfos)
             {
                 double lerpIdx = info.DataList.FindLerpIndex(currentDataTime);
                 double value = info.DataList.GetLerpValue(lerpIdx, propInfo);
+
+                info.HistogramWindow.LerpIdx = lerpIdx;
 
                 int i = (int)Math.Floor(lerpIdx);
                 var lastLookahead = i + 5;
                 for (; i < info.DataList.Count && i <= lastLookahead; i++)
                 {
                     SensorData record = info.DataList[i];
-                    if (record.PM2_5_ug_m3 > 90)
+                    if (record.PM2_5_ug_m3 > 0.4*maxValue)
                     {
                         playbackFactor = Math.Min(playbackFactor, 1);
                         break;
                     }
                 }
 
-                Application.Current.Dispatcher.Invoke(() =>
+                Application.Current?.Dispatcher.Invoke(() =>
                 {
                     if (IsLoaded)
                     {
@@ -119,7 +157,7 @@ namespace SmartFilterViewer
                 });
             }
 
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher.Invoke(() =>
             {
                 if (IsLoaded && dataTimeInMillisec > 0)
                 {
@@ -136,7 +174,7 @@ namespace SmartFilterViewer
 
         private void DrawDataToGraph()
         {
-            foreach (var info in sensorInfos.Values)
+            foreach (var info in ValidSensorInfos)
             {
                 var points = new StylusPointCollection();
                 foreach (var dataPoint in info.DataList)
@@ -149,7 +187,7 @@ namespace SmartFilterViewer
 
                     points.Add(new StylusPoint(xPos, yPos));
                 }
-                info.Stroke = DrawStroke(points, info.GraphColor, info.Stroke);
+                info.Stroke.StylusPoints = points;
             }
 
             DrawTimeStroke();
@@ -169,7 +207,7 @@ namespace SmartFilterViewer
             points.Add(new StylusPoint(TimelineGraph.ActualWidth * scaledProgress, 0));
             points.Add(new StylusPoint(TimelineGraph.ActualWidth * scaledProgress, TimelineGraph.ActualHeight));
 
-            timeStroke = DrawStroke(points, Colors.Red, timeStroke);
+            timeStroke.StylusPoints = points;
         }
 
         private void DrawZoomIndicators(Point end)
@@ -204,6 +242,112 @@ namespace SmartFilterViewer
         {
             currentDataTime = dataStartTime + TimeSpan.FromMilliseconds(dataTimeInMillisec * pos);
             DrawTimeStroke();
+        }
+
+        private void LoadDataForSensor(Shape sensorShape)
+        {
+            timer.Enabled = false;
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                var info = sensorInfos[sensorShape];
+
+                info.FileName = openFileDialog.FileName;
+
+                var allLines = File.ReadAllLines(info.FileName);
+                var dataLines = allLines.SkipWhile(x => !x.StartsWith("OADateTime"))
+                    .Skip(1)
+                    .Select(x => x.Replace("n. def.", "0"));
+
+                using (var reader = new StringReader(string.Join("\n", dataLines)))
+                using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
+                {
+                    csv.Configuration.HasHeaderRecord = false;
+                    info.DataList = new SensorDataList(csv.GetRecords<SensorData>());
+                }
+
+                dataStartTime = ValidSensorInfos.Select(x => x.DataList.First().DateTime).Min();
+                currentDataTime = dataStartTime;
+
+                var dataEndTime = ValidSensorInfos.Select(x => x.DataList.Last().DateTime).Max();
+
+                dataTimeInMillisec = (dataEndTime - dataStartTime).TotalMilliseconds;
+
+                CalcMaxValue();
+
+                DrawDataToGraph();
+            }
+            lastTimerTick = DateTime.Now;
+            timer.Enabled = true;
+        }
+
+        private void OpenHistogramForSensor(Shape sensorShape)
+        {
+            sensorInfos[sensorShape].HistogramWindow.Show();
+        }
+
+        private void CalcMaxValue()
+        {
+            if (ValidSensorInfos.Any())
+                maxValue = ValidSensorInfos.SelectMany(x => x.DataList).Select(x => GetValue(x)).Max();
+        }
+
+        private void ResetZoomBtn_Click(object sender, RoutedEventArgs e)
+        {
+            graphZoomfactor = 1;
+            graphOffset = 0;
+            DrawDataToGraph();
+        }
+
+        class PropertyDropdownItem
+        {
+            public PropertyInfo PropertyInfo { get; set; }
+
+            public override string ToString()
+            {
+                var attr = Attribute.GetCustomAttribute(PropertyInfo, typeof(NiceNameAttribute)) as NiceNameAttribute;
+                return attr?.Name ?? PropertyInfo.Name;
+            }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var dropDownItems = typeof(SensorData).GetProperties()
+                .Where(x => Attribute.GetCustomAttribute(x, typeof(NiceNameAttribute)) != null)
+                .Select(x => new PropertyDropdownItem { PropertyInfo = x }).ToList();
+            ValuesComboBox.ItemsSource = dropDownItems;
+            ValuesComboBox.SelectedItem = dropDownItems.FirstOrDefault(x => x.PropertyInfo == propInfo);
+
+
+            var sensorShapes = new[] { Sensor1, Sensor2, Sensor3, Sensor4, Sensor5, Sensor6, Sensor7, Sensor8, Sensor9, };
+            for (int i = 0; i < sensorShapes.Length; i++)
+            {
+                Ellipse sensorShape = sensorShapes[i];
+                var info = new SensorInfo { Shape = sensorShape, GraphColor = HsvColor.FromHSV(180 + i * 15, 1, 1) };
+                sensorShape.Stroke = new SolidColorBrush(info.GraphColor);
+                TimelineGraph.Strokes.Add(info.Stroke);
+                sensorInfos.Add(sensorShape, info);
+            }
+
+            TimelineGraph.Strokes.Add(timeStroke);
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            timer.Enabled = false;
+
+            foreach (var info in sensorInfos.Values)
+            {
+                info.HistogramWindow.Close();
+            }
+        }
+
+        private void ValuesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            propInfo = (ValuesComboBox.SelectedItem as PropertyDropdownItem).PropertyInfo;
+            CalcMaxValue();
+            DrawDataToGraph();
         }
 
         private void StartAnimationBtn_Click(object sender, RoutedEventArgs e)
@@ -256,11 +400,6 @@ namespace SmartFilterViewer
             e.Handled = true;
         }
 
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            timer.Enabled = false;
-        }
-
         private void TimelineGraph_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (!TimelineGraph.IsMouseCaptured)
@@ -292,9 +431,7 @@ namespace SmartFilterViewer
 
             double pointToScaledRelPos(double x, double width)
             {
-                var clickpos = x / TimelineGraph.ActualWidth;
-
-                return clickpos / graphZoomfactor + graphOffset;
+                return x / width / graphZoomfactor + graphOffset;
             }
         }
 
@@ -316,89 +453,26 @@ namespace SmartFilterViewer
             }
         }
 
-        private Color[] colors = new[] { Colors.SkyBlue, Colors.Orange, Colors.Cyan, Colors.Gold, Colors.Fuchsia, Colors.Indigo, Colors.Lime, Colors.Lavender, Colors.Silver };
-
         private void Sensor_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            timer.Enabled = false;
-
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
+            if (e.ChangedButton == MouseButton.Left)
             {
-                var shape = sender as Shape;
-                if (!sensorInfos.TryGetValue(shape, out SensorInfo info))
-                {
-                    info = new SensorInfo { Shape = shape, GraphColor = colors[sensorInfos.Count] };
-                    shape.Stroke = new SolidColorBrush(info.GraphColor);
-                    sensorInfos.Add(shape, info);
-                }
-
-                info.FileName = openFileDialog.FileName;
-
-                var allLines = File.ReadAllLines(info.FileName);
-                var dataLines = allLines.SkipWhile(x => !x.StartsWith("OADateTime"))
-                    .Skip(1);
-
-                using (var reader = new StringReader(string.Join("\n", dataLines)))
-                using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
-                {
-                    csv.Configuration.HasHeaderRecord = false;
-                    info.DataList = new SensorDataList(csv.GetRecords<SensorData>());
-                }
-
-                dataStartTime = sensorInfos.Values.Select(x => x.DataList.First().DateTime).Min();
-                currentDataTime = dataStartTime;
-
-                var dataEndTime = sensorInfos.Values.Select(x => x.DataList.Last().DateTime).Max();
-
-                dataTimeInMillisec = (dataEndTime - dataStartTime).TotalMilliseconds;
-
-                CalcMaxValue();
-
-                DrawDataToGraph();
+                LoadDataForSensor(sender as Shape);
             }
-            lastTimerTick = DateTime.Now;
-            timer.Enabled = true;
-        }
-
-        private void CalcMaxValue()
-        {
-            if (sensorInfos.Any())
-                maxValue = sensorInfos.Values.SelectMany(x => x.DataList).Select(x => GetValue(x)).Max();
-        }
-
-        private void ResetZoomBtn_Click(object sender, RoutedEventArgs e)
-        {
-            graphZoomfactor = 1;
-            graphOffset = 0;
-            DrawDataToGraph();
-        }
-
-        class PropertyDropdownItem
-        {
-            public PropertyInfo PropertyInfo { get; set; }
-
-            public override string ToString()
+            else if (e.ChangedButton == MouseButton.Right)
             {
-                var attr = Attribute.GetCustomAttribute(PropertyInfo, typeof(NiceNameAttribute)) as NiceNameAttribute;
-                return attr?.Name ?? PropertyInfo.Name;
+                OpenHistogramForSensor(sender as Shape);
             }
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void PlaybackProgressBar_ScrubbedToValue(object sender, double e)
         {
-            var dropDownItems = typeof(SensorData).GetProperties()
-                .Where(x => Attribute.GetCustomAttribute(x, typeof(NiceNameAttribute)) != null)
-                .Select(x => new PropertyDropdownItem { PropertyInfo = x }).ToList();
-            ValuesComboBox.ItemsSource = dropDownItems;
-            ValuesComboBox.SelectedItem = dropDownItems.FirstOrDefault(x => x.PropertyInfo == propInfo);
+            JumpToRelPos(e);
         }
 
-        private void ValuesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void PlaybackProgressBar_IsScrubbingChanged(object sender, bool e)
         {
-            propInfo = (ValuesComboBox.SelectedItem as PropertyDropdownItem).PropertyInfo;
-            CalcMaxValue();
-            DrawDataToGraph();
+            isPaused = e;
         }
     }
 }

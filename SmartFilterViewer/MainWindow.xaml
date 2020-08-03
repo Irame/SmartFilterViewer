@@ -28,15 +28,15 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <Ellipse x:Name="Sensor1" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="0" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor2" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="0" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor3" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="0" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor4" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="1" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor5" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="1" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor6" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="1" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor7" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="2" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor8" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="2" MouseUp="Sensor_MouseUp"/>
-                <Ellipse x:Name="Sensor9" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="2" MouseUp="Sensor_MouseUp"/>
+                <Ellipse x:Name="Sensor1" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor2" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor3" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor4" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor5" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor6" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor7" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor8" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor9" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
             </Grid>
         </Border>
         <InkCanvas x:Name="TimelineGraph" Height="100" HorizontalAlignment="Stretch" Cursor="Hand" Margin="8" Grid.Row="2"
@@ -45,7 +45,7 @@
                        PreviewMouseDown="TimelineGraph_PreviewMouseDown"
                        PreviewMouseUp="TimelineGraph_PreviewMouseUp"
                        PreviewMouseMove="TimelineGraph_PreviewMouseMove"/>
-        <ProgressBar x:Name="PlaybackProgressBar" Minimum="0" Maximum="1" Height="20" Margin="8" MouseUp="PlaybackProgressBar_MouseUp" Grid.Row="3"/>
+        <local:ScrubProgressBar x:Name="PlaybackProgressBar" Minimum="0" Maximum="1" Height="20" Margin="8" Grid.Row="3" Cursor="Hand" ScrubbedToValue="PlaybackProgressBar_ScrubbedToValue" IsScrubbingChanged="PlaybackProgressBar_IsScrubbingChanged"/>
         <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal" Margin="8" Grid.Row="4">
             <Button Content="Start Animation" VerticalAlignment="Center" Width="105" Click="StartAnimationBtn_Click"/>
             <Label x:Name="TimestampLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Width="95"/>

@@ -10,7 +10,7 @@ using System.Windows;
 
 namespace SmartFilterViewer
 {
-    class SensorDataList : List<SensorData>
+    public class SensorDataList : List<SensorData>
     {
         public SensorDataList(IEnumerable<SensorData> data) : base(data)
         {}
@@ -88,7 +88,7 @@ namespace SmartFilterViewer
         }
     }
 
-    class SensorData
+    public class SensorData
     {
         private double _oaDateTime;
 
@@ -105,99 +105,75 @@ namespace SmartFilterViewer
             }
         }
 
-        [NiceName("Bin00")]
         [Index(1)]
         public double Bin00 { get; set; }
 
-        [NiceName("Bin01")]
         [Index(2)]
         public double Bin01 { get; set; }
 
-        [NiceName("Bin02")]
         [Index(3)]
         public double Bin02 { get; set; }
 
-        [NiceName("Bin03")]
         [Index(4)]
         public double Bin03 { get; set; }
 
-        [NiceName("Bin04")]
         [Index(5)]
         public double Bin04 { get; set; }
 
-        [NiceName("Bin05")]
         [Index(6)]
         public double Bin05 { get; set; }
 
-        [NiceName("Bin06")]
         [Index(7)]
         public double Bin06 { get; set; }
 
-        [NiceName("Bin07")]
         [Index(8)]
         public double Bin07 { get; set; }
 
-        [NiceName("Bin08")]
         [Index(9)]
         public double Bin08 { get; set; }
 
-        [NiceName("Bin09")]
         [Index(10)]
         public double Bin09 { get; set; }
 
-        [NiceName("Bin10")]
         [Index(11)]
         public double Bin10 { get; set; }
 
-        [NiceName("Bin11")]
         [Index(12)]
         public double Bin11 { get; set; }
 
-        [NiceName("Bin12")]
         [Index(13)]
         public double Bin12 { get; set; }
 
-        [NiceName("Bin13")]
         [Index(14)]
         public double Bin13 { get; set; }
 
-        [NiceName("Bin14")]
         [Index(15)]
         public double Bin14 { get; set; }
 
-        [NiceName("Bin15")]
         [Index(16)]
         public double Bin15 { get; set; }
 
-        [NiceName("Bin16")]
         [Index(17)]
         public double Bin16 { get; set; }
 
-        [NiceName("Bin17")]
         [Index(18)]
         public double Bin17 { get; set; }
 
-        [NiceName("Bin18")]
         [Index(19)]
         public double Bin18 { get; set; }
 
-        [NiceName("Bin19")]
         [Index(20)]
         public double Bin19 { get; set; }
 
-        [NiceName("Bin20")]
         [Index(21)]
         public double Bin20 { get; set; }
 
-        [NiceName("Bin21")]
         [Index(22)]
         public double Bin21 { get; set; }
 
-        [NiceName("Bin22")]
         [Index(23)]
         public double Bin22 { get; set; }
 
-        [NiceName("Bin23")]
         [Index(24)]
         public double Bin23 { get; set; }
 
