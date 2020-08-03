@@ -174,11 +174,22 @@ namespace SmartFilterViewer
 
         private void DrawDataToGraph()
         {
+            var startTime = RelativeToDataTime(graphOffset);
+            var endTime = RelativeToDataTime(graphOffset + 1/graphZoomfactor);
+
             foreach (var info in ValidSensorInfos)
             {
+                var startIdx = (int)Math.Floor(info.DataList.FindLerpIndex(startTime));
+                var endIdx = (int)Math.Ceiling(info.DataList.FindLerpIndex(endTime));
+
+                startIdx = Math.Max(startIdx, 0);
+                endIdx = Math.Min(endIdx, info.DataList.Count-1);
+
                 var points = new StylusPointCollection();
-                foreach (var dataPoint in info.DataList)
+                for (int i = startIdx; i <= endIdx; i++)
                 {
+                    SensorData dataPoint = info.DataList[i];
+
                     var xFactor = (dataPoint.DateTime - dataStartTime).TotalMilliseconds / dataTimeInMillisec;
                     var yFactor = 1 - GetValue(dataPoint) / maxValue;
 
@@ -238,9 +249,14 @@ namespace SmartFilterViewer
             return (double)propInfo.GetValue(data);
         }
 
+        private DateTime RelativeToDataTime(double relTime)
+        {
+            return dataStartTime + TimeSpan.FromMilliseconds(dataTimeInMillisec * relTime);
+        }
+
         private void JumpToRelPos(double pos)
         {
-            currentDataTime = dataStartTime + TimeSpan.FromMilliseconds(dataTimeInMillisec * pos);
+            currentDataTime = RelativeToDataTime(pos);
             DrawTimeStroke();
         }
 
