@@ -1,7 +1,10 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper;
+using CsvHelper.Configuration.Attributes;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,8 +15,27 @@ namespace SmartFilterViewer
 {
     public class SensorDataList : List<SensorData>
     {
-        public SensorDataList(IEnumerable<SensorData> data) : base(data)
-        {}
+        public string FileName { get; }
+
+        private SensorDataList(string fileName, IEnumerable<SensorData> data) : base(data)
+        {
+            FileName = fileName;
+        }
+
+        public static SensorDataList FromFile(string fileName)
+        {
+            var allLines = File.ReadAllLines(fileName);
+            var dataLines = allLines.SkipWhile(x => !x.StartsWith("OADateTime"))
+                .Skip(1)
+                .Select(x => x.Replace("n. def.", "0"));
+
+            using (var reader = new StringReader(string.Join("\n", dataLines)))
+            using (var csv = new CsvReader(reader, CultureInfo.CurrentCulture))
+            {
+                csv.Configuration.HasHeaderRecord = false;
+                return new SensorDataList(fileName, csv.GetRecords<SensorData>());
+            }
+        }
 
         public double GetLerpValue(double idx, PropertyInfo propInfo)
         {

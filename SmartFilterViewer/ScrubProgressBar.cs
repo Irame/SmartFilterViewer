@@ -11,17 +11,17 @@ namespace SmartFilterViewer
 {
     class ScrubProgressBar : ProgressBar
     {
-        private bool isScrubbing;
-
         public bool IsScrubbing
         {
-            get => isScrubbing;
-            set
-            {
-                isScrubbing = value;
-                IsScrubbingChanged(this, isScrubbing);
-            }
+            get { return (bool)GetValue(IsScrubbingProperty); }
+            set { SetValue(IsScrubbingProperty, value); }
         }
+
+        // Using a DependencyProperty as the backing store for IsScrubbing.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsScrubbingProperty =
+            DependencyProperty.Register("IsScrubbing", typeof(bool), typeof(ScrubProgressBar), new PropertyMetadata(false));
+
+
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
@@ -51,11 +51,6 @@ namespace SmartFilterViewer
         private void SetValueForMousePos(Point mousePos)
         {
             Value = (Maximum - Minimum) * (mousePos.X / ActualWidth);
-
-            ScrubbedToValue?.Invoke(this, Value);
         }
-
-        public event EventHandler<double> ScrubbedToValue;
-        public event EventHandler<bool> IsScrubbingChanged;
     }
 }

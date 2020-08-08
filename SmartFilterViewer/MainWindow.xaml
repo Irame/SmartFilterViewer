@@ -4,10 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartFilterViewer"
+        xmlns:converter="clr-namespace:SmartFilterViewer.Converter"
         mc:Ignorable="d"
         Title="MainWindow" Height="563.5" Width="526"
         Loaded="Window_Loaded"
-        Closed="Window_Closed">
+        Closed="Window_Closed"
+        d:DataContext="{d:DesignInstance Type=local:ViewModel, IsDesignTimeCreatable=True}">
+    <Window.Resources>
+        <converter:ColorToSolidColorBrushValueConverter  x:Key="ColorToSolidColorBrush_ValueConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -28,29 +33,24 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <Ellipse x:Name="Sensor1" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor2" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor3" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor4" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor5" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor6" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor7" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor8" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
-                <Ellipse x:Name="Sensor9" Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="50" Stroke="Black" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor1" DataContext="{Binding SensorInfos[0]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor2" DataContext="{Binding SensorInfos[1]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor3" DataContext="{Binding SensorInfos[2]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="0" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor4" DataContext="{Binding SensorInfos[3]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor5" DataContext="{Binding SensorInfos[4]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor6" DataContext="{Binding SensorInfos[5]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="1" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor7" DataContext="{Binding SensorInfos[6]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="0" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor8" DataContext="{Binding SensorInfos[7]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="1" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
+                <Ellipse x:Name="Sensor9" DataContext="{Binding SensorInfos[8]}" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" HorizontalAlignment="Center" Height="50" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" VerticalAlignment="Center" Width="50" StrokeThickness="3" Grid.Column="2" Grid.Row="2" MouseUp="Sensor_MouseUp" Cursor="Hand"/>
             </Grid>
         </Border>
-        <InkCanvas x:Name="TimelineGraph" Height="100" HorizontalAlignment="Stretch" Cursor="Hand" Margin="8" Grid.Row="2"
-                       SizeChanged="TimelineGraph_SizeChanged" 
-                       MouseWheel="TimelineGraph_MouseWheel" 
-                       PreviewMouseDown="TimelineGraph_PreviewMouseDown"
-                       PreviewMouseUp="TimelineGraph_PreviewMouseUp"
-                       PreviewMouseMove="TimelineGraph_PreviewMouseMove"/>
-        <local:ScrubProgressBar x:Name="PlaybackProgressBar" Minimum="0" Maximum="1" Height="20" Margin="8" Grid.Row="3" Cursor="Hand" ScrubbedToValue="PlaybackProgressBar_ScrubbedToValue" IsScrubbingChanged="PlaybackProgressBar_IsScrubbingChanged"/>
+        <local:TimelineGraph x:Name="TimelineGraph" Progress="{Binding Progress, Mode=TwoWay}" Data="{Binding TimelineGraphData}" Height="100" HorizontalAlignment="Stretch" Cursor="Hand" Margin="8" Grid.Row="2"/>
+        <local:ScrubProgressBar x:Name="PlaybackProgressBar" Value="{Binding Progress, Mode=TwoWay}" Minimum="0" Maximum="1" Height="20" Margin="8" Grid.Row="3" Cursor="Hand" IsScrubbing="{Binding IsScrubbing, Mode=OneWayToSource}"/>
         <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal" Margin="8" Grid.Row="4">
             <Button Content="Start Animation" VerticalAlignment="Center" Width="105" Click="StartAnimationBtn_Click"/>
-            <Label x:Name="TimestampLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Width="95"/>
-            <Slider x:Name="PlaybackSpeedSlider" VerticalAlignment="Center" Margin="40,0,0,0" Width="155" Minimum="0.0" Maximum="100.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.1" ValueChanged="PlaybackSpeedSlider_ValueChanged" Value="1"/>
-            <Label x:Name="PlaybackSpeedLabel" Content="1x" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <TextBlock x:Name="TimestampLabel" Text="{Binding CurrentTimestamp, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.ff}}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="95"/>
+            <Slider x:Name="PlaybackSpeedSlider" Value="{Binding PlaybackFactor, Mode=TwoWay}" VerticalAlignment="Center" Margin="40,0,0,0" Width="155" Minimum="0.0" Maximum="100.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.1"/>
+            <TextBlock x:Name="PlaybackSpeedLabel" Text="{Binding PlaybackFactor, StringFormat={}{0:0.0}x}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <Button Content="Reset Zoom" Width="75" Click="ResetZoomBtn_Click"/>
         </StackPanel>
         <ComboBox x:Name="ValuesComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Grid.Row="0" SelectionChanged="ValuesComboBox_SelectionChanged"/>

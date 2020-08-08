@@ -20,6 +20,7 @@ namespace SmartFilterViewer
     public partial class HistogramWindow : Window
     {
         private double maxValue;
+        private Brush barBrush;
 
         private SensorDataList sensorDataList;
         public SensorDataList SensorDataList
@@ -39,6 +40,19 @@ namespace SmartFilterViewer
             {
                 lerpIdx = value;
                 UpdateBars();
+            }
+        }
+
+        private Color barColor;
+        public Color BarColor
+        {
+            get => barColor;
+            set
+            {
+                barColor = value;
+                barBrush = new SolidColorBrush(barColor);
+                barBrush.Freeze();
+                UpdateBarColors();
             }
         }
 
@@ -83,6 +97,34 @@ namespace SmartFilterViewer
                 Bin22Bar.Height = SensorDataList.GetLerpValue(lerpIdx, sensordataType.GetProperty(nameof(SensorData.Bin22))) / maxValue * rowHeight;
                 Bin23Bar.Height = SensorDataList.GetLerpValue(lerpIdx, sensordataType.GetProperty(nameof(SensorData.Bin23))) / maxValue * rowHeight;
             });
+        }
+
+        private void UpdateBarColors()
+        {
+            Bin00Bar.Fill = barBrush;
+            Bin01Bar.Fill = barBrush;
+            Bin02Bar.Fill = barBrush;
+            Bin03Bar.Fill = barBrush;
+            Bin04Bar.Fill = barBrush;
+            Bin05Bar.Fill = barBrush;
+            Bin06Bar.Fill = barBrush;
+            Bin07Bar.Fill = barBrush;
+            Bin08Bar.Fill = barBrush;
+            Bin09Bar.Fill = barBrush;
+            Bin10Bar.Fill = barBrush;
+            Bin11Bar.Fill = barBrush;
+            Bin12Bar.Fill = barBrush;
+            Bin13Bar.Fill = barBrush;
+            Bin14Bar.Fill = barBrush;
+            Bin15Bar.Fill = barBrush;
+            Bin16Bar.Fill = barBrush;
+            Bin17Bar.Fill = barBrush;
+            Bin18Bar.Fill = barBrush;
+            Bin19Bar.Fill = barBrush;
+            Bin20Bar.Fill = barBrush;
+            Bin21Bar.Fill = barBrush;
+            Bin22Bar.Fill = barBrush;
+            Bin23Bar.Fill = barBrush;
         }
 
         public void UpdateMaxValue()
