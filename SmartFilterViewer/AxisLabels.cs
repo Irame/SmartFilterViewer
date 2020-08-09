@@ -61,12 +61,13 @@ namespace SmartFilterViewer
             MaxTickCount = (int)Math.Floor(length / MinTickSpacing) + 1;
         }
 
+        private bool hasTickInfosChanged;
+
         private void OnTickInfosChanged()
         {
-            if (TickInfos == null)
-                return;
+            hasTickInfosChanged = true;
 
-            var TickInfosList = TickInfos.ToList();
+            var TickInfosList = TickInfos?.ToList() ?? new List<TickInfo>();
 
             for (int i = 0; i < TickInfosList.Count; i++)
             {
@@ -90,7 +91,15 @@ namespace SmartFilterViewer
             if (Orientation == Orientation.Horizontal && sizeInfo.WidthChanged
                 || Orientation == Orientation.Vertical && sizeInfo.HeightChanged)
             {
+                hasTickInfosChanged = false;
                 CalcMaxTickCount();
+                if (!hasTickInfosChanged)
+                {
+                    foreach (var item in tickControlsList)
+                    {
+                        item.UpdateTickPosition();
+                    }
+                }
             }
 
             if (Orientation == Orientation.Horizontal && sizeInfo.HeightChanged
@@ -106,6 +115,9 @@ namespace SmartFilterViewer
         private class TickControls : IDisposable
         {
             private AxisLabels parent;
+
+            private double relPos;
+            private Size textSize;
 
             public TextBlock Text;
             public Rectangle tickStart;
@@ -187,30 +199,25 @@ namespace SmartFilterViewer
                 parent.Children.Remove(tickEnd);
             }
 
-            private Size GetTextSize()
-            {
-                if (parent.IsArrangeValid)
-                    return new Size(Text.ActualWidth, Text.ActualHeight);
-
-                if (!Text.IsMeasureValid)
-                    Text.Measure(new Size(1000, 1000));
-
-                return Text.DesiredSize;
-            }
-
             public void Update(TickInfo info)
             {
                 Text.Text = info.Label;
+                textSize = Utils.MeasureString(info.Label, Text);
+                relPos = parent.Orientation == Orientation.Horizontal ? info.Pos : 1-info.Pos;
 
                 UpdateTickLengths();
+                UpdateTickPosition();
+            }
 
-                var pos = info.Pos * (parent.length - 1);
+            public void UpdateTickPosition()
+            {
+                var pos = relPos * (parent.length - 1);
 
-                double textWidth = GetTextSize().Width;
+                var textLength = parent.Orientation == Orientation.Horizontal ? textSize.Width : textSize.Height;
 
-                var textPos = pos - textWidth / 2;
+                var textPos = pos - textLength / 2;
 
-                textPos = Math.Min(textPos, parent.length - textWidth);
+                textPos = Math.Min(textPos, parent.length - textLength);
                 textPos = Math.Max(textPos, 0);
 
                 if (parent.Orientation == Orientation.Horizontal)
@@ -237,7 +244,8 @@ namespace SmartFilterViewer
 
             public void UpdateTickLengths()
             {
-                var tickLengths = Math.Max(0, (parent.space - GetTextSize().Height) / 2);
+                var textSpace = parent.Orientation == Orientation.Horizontal ? textSize.Height : textSize.Width;
+                var tickLengths = Math.Max(0, (parent.space - textSpace) / 2 - 2);
 
                 if (parent.Orientation == Orientation.Horizontal)
                 {

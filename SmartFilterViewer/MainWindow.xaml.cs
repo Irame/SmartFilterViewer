@@ -93,14 +93,36 @@ namespace SmartFilterViewer
 
         public int TimelineMaxTickCount
         {
-            get => maxTickCount;
+            get => timelineMaxTickCount;
             set
             {
-                maxTickCount = value;
-                UpdateTickInfos();
+                timelineMaxTickCount = value;
+                UpdateTimelineTickInfos();
             }
         }
-        public List<TickInfo> TimelineTickInfos { get => tickInfos; set => SetAndNotify(value, ref tickInfos); }
+        public List<TickInfo> TimelineTickInfos { get => timelineTickInfos; set => SetAndNotify(value, ref timelineTickInfos); }
+
+        public int HeatLegendMaxTickCount
+        {
+            get => heatLegendMaxTickCount;
+            set
+            {
+                heatLegendMaxTickCount = value;
+                UpdateHeatLegendTickInfos();
+            }
+        }
+        public List<TickInfo> HeatLegendTickInfos { get => heatLegendTickInfos; set => SetAndNotify(value, ref heatLegendTickInfos); }
+
+        public int GraphLegendMaxTickCount
+        {
+            get => graphLegendMaxTickCount;
+            set
+            {
+                graphLegendMaxTickCount = value;
+                UpdateGraphLegendTickInfos();
+            }
+        }
+        public List<TickInfo> GraphLegendTickInfos { get => graphLegendTickInfos; set => SetAndNotify(value, ref graphLegendTickInfos); }
 
         public DateTime lastTimerTick;
         public DateTime dataStartTime;
@@ -110,8 +132,12 @@ namespace SmartFilterViewer
         public double maxValue;
 
         public bool isPaused;
-        private int maxTickCount;
-        private List<TickInfo> tickInfos;
+        private int heatLegendMaxTickCount;
+        private int graphLegendMaxTickCount;
+        private int timelineMaxTickCount;
+        private List<TickInfo> timelineTickInfos;
+        private List<TickInfo> heatLegendTickInfos;
+        private List<TickInfo> graphLegendTickInfos;
 
         public bool IsScrubbing { get; set; }
 
@@ -154,7 +180,7 @@ namespace SmartFilterViewer
                         dataTimeInMillisec = (dataEndTime - dataStartTime).TotalMilliseconds;
 
                         CalcMaxValiue();
-                        UpdateTickInfos();
+                        UpdateTimelineTickInfos();
 
                         OnNotifyPropertyChanged(nameof(ValidSensorInfos));
                         OnNotifyPropertyChanged(nameof(TimelineGraphData));
@@ -167,11 +193,38 @@ namespace SmartFilterViewer
         {
             if (ValidSensorInfos.Any())
                 maxValue = ValidSensorInfos.SelectMany(x => x.DataList).Select(x => GetValue(x)).Max();
+
+            UpdateHeatLegendTickInfos();
+            UpdateGraphLegendTickInfos();
         }
 
-        private void UpdateTickInfos()
+        private void UpdateHeatLegendTickInfos()
         {
-            var tickCount = Math.Min(maxTickCount, 4);
+            HeatLegendTickInfos = GenerateValueTickInfo(heatLegendMaxTickCount);
+        }
+
+        private void UpdateGraphLegendTickInfos()
+        {
+            GraphLegendTickInfos = GenerateValueTickInfo(graphLegendMaxTickCount);
+        }
+
+        private List<TickInfo> GenerateValueTickInfo(int maxTickCount)
+        {
+            var tickDist = Math.Ceiling((maxValue / maxTickCount) / 100) * 100;
+
+            var tickInfos = new List<TickInfo>();
+            tickInfos.Add(new TickInfo { Pos = 0, Label = "0" });
+            for (double val = tickDist; val < maxValue - tickDist / 2; val += tickDist)
+            {
+                tickInfos.Add(new TickInfo { Pos = val / maxValue, Label = $"{val}" });
+            }
+            tickInfos.Add(new TickInfo { Pos = 1, Label = $"{maxValue}" });
+            return tickInfos;
+        }
+
+        private void UpdateTimelineTickInfos()
+        {
+            var tickCount = Math.Min(timelineMaxTickCount, 100);
 
             var tickGap = TimeSpan.FromMilliseconds(dataTimeInMillisec / (tickCount - 1));
             var curTick = TimeSpan.Zero;

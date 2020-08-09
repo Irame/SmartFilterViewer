@@ -75,6 +75,7 @@
     <Compile Include="TimelineGraph.xaml.cs">
       <DependentUpon>TimelineGraph.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils.cs" />
     <Page Include="HistogramWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
