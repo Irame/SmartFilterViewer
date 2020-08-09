@@ -74,6 +74,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AxisLabels.cs" />
+    <Compile Include="Converter\BoolToVisibilityConverter.cs" />
+    <Compile Include="Converter\ConverterBase.cs" />
     <Compile Include="Converter\TimeSpanToNegativeFormatedStringValueConverter.cs" />
     <Compile Include="RelayCommand.cs" />
     <Compile Include="TimelineGraph.xaml.cs">

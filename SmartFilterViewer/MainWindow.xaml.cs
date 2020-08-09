@@ -88,7 +88,26 @@ namespace SmartFilterViewer
         private DateTime currentDataTime;
         private double playbackFactor;
 
+        private DateTime lastTimerTick;
+        private DateTime dataStartTime;
+        private double dataTimeInMillisec;
+
+        private PropertyInfo propInfo;
+        private double maxValue;
+
+        private int heatLegendMaxTickCount;
+        private int graphLegendMaxTickCount;
+        private int timelineMaxTickCount;
+        private int timelineGraphMaxTickCount;
+        private List<TickInfo> timelineTickInfos;
+        private List<TickInfo> timelineGraphTickInfos;
+        private List<TickInfo> heatLegendTickInfos;
+        private List<TickInfo> graphLegendTickInfos;
+        private bool isPaused;
+
         public List<SensorViewModel> SensorInfos { get; }
+
+        public bool IsPaused { get => isPaused; private set => SetAndNotify(value, ref isPaused); }
 
         public IEnumerable<TimelineGraphData> TimelineGraphData =>
             ValidSensorInfos.Select(sensorVM => new TimelineGraphData
@@ -173,23 +192,6 @@ namespace SmartFilterViewer
             }
         }
 
-        public DateTime lastTimerTick;
-        public DateTime dataStartTime;
-        public double dataTimeInMillisec;
-
-        private PropertyInfo propInfo;
-        public double maxValue;
-
-        public bool isPaused;
-        private int heatLegendMaxTickCount;
-        private int graphLegendMaxTickCount;
-        private int timelineMaxTickCount;
-        private int timelineGraphMaxTickCount;
-        private List<TickInfo> timelineTickInfos;
-        private List<TickInfo> timelineGraphTickInfos;
-        private List<TickInfo> heatLegendTickInfos;
-        private List<TickInfo> graphLegendTickInfos;
-
         public bool IsScrubbing { get; set; }
 
 
@@ -206,9 +208,10 @@ namespace SmartFilterViewer
         }
 
         public List<PropertyDropdownItem> PropSelectItems { get; set; }
-        public PropertyDropdownItem SelectedPropertyDropdownItem { 
-            get => PropSelectItems.FirstOrDefault(x => x.PropertyInfo == PropInfo); 
-            set => PropInfo = value.PropertyInfo; 
+        public PropertyDropdownItem SelectedPropertyDropdownItem
+        {
+            get => PropSelectItems.FirstOrDefault(x => x.PropertyInfo == PropInfo);
+            set => PropInfo = value.PropertyInfo;
         }
 
         public IEnumerable<SensorViewModel> ValidSensorInfos => SensorInfos.Where(x => x.DataList != null);
@@ -219,7 +222,7 @@ namespace SmartFilterViewer
 
             propInfo = typeof(SensorData).GetProperty(nameof(SensorData.PM2_5_ug_m3));
 
-            isPaused = true;
+            IsPaused = true;
 
             SensorInfos = new List<SensorViewModel>();
             for (int i = 0; i < 9; i++)
@@ -317,7 +320,7 @@ namespace SmartFilterViewer
         {
             var currentTime = DateTime.Now;
 
-            if (!isPaused && !IsScrubbing)
+            if (!IsPaused && !IsScrubbing)
                 CurrentDataTime += TimeSpan.FromMilliseconds((currentTime - lastTimerTick).TotalMilliseconds * PlaybackFactor);
 
             lastTimerTick = currentTime;
@@ -347,6 +350,23 @@ namespace SmartFilterViewer
             }
         }
 
+        public void StartAnimation()
+        {
+            lastTimerTick = DateTime.Now;
+            IsPaused = false;
+        }
+
+        public void PauseAnimation()
+        {
+            IsPaused = true;
+        }
+
+        public void StopAnimation()
+        {
+            CurrentDataTime = dataStartTime;
+            IsPaused = true;
+        }
+
         public double GetValue(SensorData data)
         {
             return (double)propInfo.GetValue(data);
@@ -366,10 +386,9 @@ namespace SmartFilterViewer
         {
             if (mouseButton == MouseButton.Left)
             {
-                isPaused = true;
+                PauseAnimation();
                 sensorViewModel.LoadData();
-                lastTimerTick = DateTime.Now;
-                isPaused = false;
+                StartAnimation();
             }
             else if (mouseButton == MouseButton.Right)
             {
@@ -415,8 +434,17 @@ namespace SmartFilterViewer
 
         private void StartAnimationBtn_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.lastTimerTick = DateTime.Now;
-            ViewModel.isPaused = false;
+            ViewModel.StartAnimation();
+        }
+
+        private void PauseAnimationBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.PauseAnimation();
+        }
+
+        private void StopAnimationBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.StopAnimation();
         }
 
         private void Sensor_MouseDown(object sender, MouseButtonEventArgs e)
