@@ -224,9 +224,9 @@ namespace SmartFilterViewer
 
         public void Zoom(double center, double factor)
         {
-            var oldZoomFactor = zoomFactor;
             var scaledCenter = center / zoomFactor;
-            SetZoomParams(zoomFactor * factor, zoomOffset + scaledCenter * (1 - oldZoomFactor / zoomFactor));
+            var newZoomFactor = zoomFactor * factor;
+            SetZoomParams(newZoomFactor, zoomOffset + scaledCenter * (1 - zoomFactor / newZoomFactor));
         }
 
         public void ZoomIn(double center = 0.5, double factor = 2) => Zoom(center, factor);

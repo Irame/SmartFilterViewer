@@ -70,6 +70,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AxisLabels.cs" />
+    <Compile Include="RelayCommand.cs" />
     <Compile Include="TimelineGraph.xaml.cs">
       <DependentUpon>TimelineGraph.xaml</DependentUpon>
     </Compile>

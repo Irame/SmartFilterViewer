@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SmartFilterViewer"
         xmlns:converter="clr-namespace:SmartFilterViewer.Converter"
         mc:Ignorable="d"
-        Title="MainWindow" Height="563.5" Width="526"
+        Title="MainWindow" Height="610.567" Width="548"
         Loaded="Window_Loaded"
         Closed="Window_Closed"
         d:DataContext="{d:DesignInstance Type=local:ViewModel, IsDesignTimeCreatable=True}">
@@ -17,6 +17,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -45,14 +46,15 @@
             </Grid>
         </Border>
         <local:TimelineGraph x:Name="TimelineGraph" Progress="{Binding Progress, Mode=TwoWay}" Data="{Binding TimelineGraphData}" Height="100" HorizontalAlignment="Stretch" Cursor="Hand" Margin="8" Grid.Row="2"/>
-        <local:ScrubProgressBar x:Name="PlaybackProgressBar" Value="{Binding Progress, Mode=TwoWay}" Minimum="0" Maximum="1" Height="20" Margin="8" Grid.Row="3" Cursor="Hand" IsScrubbing="{Binding IsScrubbing, Mode=OneWayToSource}"/>
-        <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal" Margin="8" Grid.Row="4">
-            <Button Content="Start Animation" VerticalAlignment="Center" Width="105" Click="StartAnimationBtn_Click"/>
-            <TextBlock x:Name="TimestampLabel" Text="{Binding CurrentTimestamp, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.ff}}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="95"/>
-            <Slider x:Name="PlaybackSpeedSlider" Value="{Binding PlaybackFactor, Mode=TwoWay}" VerticalAlignment="Center" Margin="40,0,0,0" Width="155" Minimum="0.0" Maximum="100.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.1"/>
-            <TextBlock x:Name="PlaybackSpeedLabel" Text="{Binding PlaybackFactor, StringFormat={}{0:0.0}x}" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-            <Button Content="Reset Zoom" Width="75" Click="ResetZoomBtn_Click"/>
-        </StackPanel>
-        <ComboBox x:Name="ValuesComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Grid.Row="0" SelectionChanged="ValuesComboBox_SelectionChanged"/>
+        <DockPanel HorizontalAlignment="Stretch" Margin="8" Grid.Row="5" LastChildFill="False">
+            <Button Content="Start Animation" DockPanel.Dock="Left" VerticalAlignment="Center" Width="105" Click="StartAnimationBtn_Click"/>
+            <TextBlock x:Name="TimestampLabel" DockPanel.Dock="Left" Text="{Binding CurrentTimestamp, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.ff}}" Margin="10, 0, 0, 0" VerticalAlignment="Center"/>
+            <Slider x:Name="PlaybackSpeedSlider" DockPanel.Dock="Left" Value="{Binding PlaybackFactor, Mode=TwoWay}" VerticalAlignment="Center" Margin="40,0,0,0" Width="155" Minimum="0.0" Maximum="100.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.1"/>
+            <TextBlock x:Name="PlaybackSpeedLabel" DockPanel.Dock="Left" Text="{Binding PlaybackFactor, StringFormat={}{0:0.0}x}" VerticalAlignment="Center"/>
+            <Button Content="Reset Zoom" Width="75" DockPanel.Dock="Right" Click="ResetZoomBtn_Click"/>
+        </DockPanel>
+        <local:ScrubProgressBar x:Name="PlaybackProgressBar" Value="{Binding Progress, Mode=TwoWay}" Minimum="0" Maximum="1" Height="20" Margin="8, 8, 8, 0" Grid.Row="3" Cursor="Hand" IsScrubbing="{Binding IsScrubbing, Mode=OneWayToSource}"/>
+        <local:AxisLabels MaxTickCount="{Binding TimelineMaxTickCount, Mode=OneWayToSource}" TickInfos="{Binding TimelineTickInfos, Mode=OneWay}" MinTickSpacing="100" Grid.Row="4" Height="30" Margin="8, 0, 8, 8" Orientation="Horizontal"/>
+        <ComboBox x:Name="ValuesComboBox" HorizontalAlignment="Left" Margin="8" Width="200" Grid.Row="0" SelectionChanged="ValuesComboBox_SelectionChanged"/>
     </Grid>
 </Window>
