@@ -11,6 +11,7 @@
         d:DataContext="{d:DesignInstance Type=local:ViewModel, IsDesignTimeCreatable=True}">
     <Window.Resources>
         <converter:ColorToSolidColorBrushValueConverter  x:Key="ColorToSolidColorBrush_ValueConverter"/>
+        <converter:TimeSpanToNegativeFormatedStringValueConverter  x:Key="TimeSpanToNegativeFormatedString_ValueConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -78,7 +79,7 @@
         </Grid>
         <DockPanel HorizontalAlignment="Stretch" Margin="8" Grid.Row="5" LastChildFill="False">
             <Button Content="Start Animation" DockPanel.Dock="Left" VerticalAlignment="Center" Width="105" Click="StartAnimationBtn_Click"/>
-            <TextBlock x:Name="TimestampLabel" DockPanel.Dock="Left" Text="{Binding CurrentTimestamp, Mode=OneWay, StringFormat={}{0:hh\\:mm\\:ss\\.ff}}" Margin="10, 0, 0, 0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="TimestampLabel" DockPanel.Dock="Left" Text="{Binding CurrentTimestamp, Mode=OneWay, Converter={StaticResource TimeSpanToNegativeFormatedString_ValueConverter}, ConverterParameter='hh\\:mm\\:ss\\.ff'}" Margin="10, 0, 0, 0" VerticalAlignment="Center"/>
             <Slider x:Name="PlaybackSpeedSlider" DockPanel.Dock="Left" Value="{Binding PlaybackFactor, Mode=TwoWay}" VerticalAlignment="Center" Margin="40,0,0,0" Width="155" Minimum="0.0" Maximum="100.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.1"/>
             <TextBlock x:Name="PlaybackSpeedLabel" DockPanel.Dock="Left" Text="{Binding PlaybackFactor, StringFormat={}{0:0.0}x}" VerticalAlignment="Center"/>
             <Button Content="Reset Zoom" Width="75" DockPanel.Dock="Right" Click="ResetZoomBtn_Click"/>

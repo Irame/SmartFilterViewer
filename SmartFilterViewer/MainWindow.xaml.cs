@@ -289,7 +289,7 @@ namespace SmartFilterViewer
             var newTickInfos = new List<TickInfo>();
             for (int i = 0; i < tickCount; i++)
             {
-                newTickInfos.Add(new TickInfo { Pos = (double)i / (tickCount - 1), Label = curTick.ToString(@"hh\:mm\:ss") });
+                newTickInfos.Add(new TickInfo { Pos = (double)i / (tickCount - 1), Label = curTick.NegativeFormat(@"hh\:mm\:ss") });
                 curTick += tickGap;
             }
             return newTickInfos;

@@ -26,5 +26,13 @@ namespace SmartFilterViewer
 
             return new Size(formattedText.Width, formattedText.Height);
         }
+
+        static public string NegativeFormat(this TimeSpan timeSpan, string format = null)
+        {
+            if (string.IsNullOrEmpty(format))
+                return timeSpan.ToString();
+            else
+                return (timeSpan.Ticks < 0 ? "-" : "") + timeSpan.ToString(format);
+        }
     }
 }
