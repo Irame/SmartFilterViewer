@@ -15,6 +15,48 @@ using System.Windows.Threading;
 
 namespace SmartFilterViewer
 {
+    public class HistogramViewModel : PropertyChangedBase
+    {
+        private int valueMaxTickCount;
+        private List<TickInfo> valueTickInfos;
+        private double maxValue;
+
+        public int ValueMaxTickCount
+        {
+            get => valueMaxTickCount;
+            set
+            {
+                valueMaxTickCount = value;
+                UpdateValueTickInfos();
+            }
+        }
+        public List<TickInfo> ValueTickInfos { get => valueTickInfos; set => SetAndNotify(value, ref valueTickInfos); }
+
+        public double MaxValue
+        {
+            get => maxValue;
+            set
+            {
+                maxValue = value;
+                UpdateValueTickInfos();
+            }
+        }
+
+        private void UpdateValueTickInfos()
+        {
+            var tickDist = Math.Ceiling(maxValue / valueMaxTickCount);
+
+            var tickInfos = new List<TickInfo>();
+            tickInfos.Add(new TickInfo { Pos = 0, Label = "0" });
+            for (double val = tickDist; val < maxValue - tickDist / 2; val += tickDist)
+            {
+                tickInfos.Add(new TickInfo { Pos = val / maxValue, Label = $"{val}" });
+            }
+            tickInfos.Add(new TickInfo { Pos = 1, Label = $"{maxValue:0}" });
+            ValueTickInfos = tickInfos;
+        }
+    }
+
     /// <summary>
     /// Interaktionslogik für HistogramWindow.xaml
     /// </summary>
@@ -22,6 +64,8 @@ namespace SmartFilterViewer
     {
         private double maxValue;
         private Brush barBrush;
+
+        private HistogramViewModel ViewModel => DataContext as HistogramViewModel;
 
         private SensorDataList sensorDataList;
         public SensorDataList SensorDataList
@@ -60,6 +104,8 @@ namespace SmartFilterViewer
         public HistogramWindow()
         {
             InitializeComponent();
+
+            DataContext = new HistogramViewModel();
         }
 
         public void UpdateBars()
@@ -132,6 +178,7 @@ namespace SmartFilterViewer
         {
             var props = typeof(SensorData).GetProperties().Where(x => x.Name.StartsWith("Bin")).ToList();
             maxValue = SensorDataList.SelectMany(x => props.Select(p => (double)p.GetValue(x))).Max();
+            ViewModel.MaxValue = maxValue;
         }
 
         private void Grid_SizeChanged(object sender, SizeChangedEventArgs e)

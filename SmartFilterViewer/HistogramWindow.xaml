@@ -5,11 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartFilterViewer"
         mc:Ignorable="d"
-        Title="HistogramWindow" Height="250" Width="450"
+        Title="HistogramWindow" Height="250" Width="550"
         Closing="Window_Closing"
-        IsVisibleChanged="Window_IsVisibleChanged">
-    <Grid SizeChanged="Grid_SizeChanged">
+        IsVisibleChanged="Window_IsVisibleChanged"
+        d:DataContext="{d:DesignInstance Type=local:HistogramViewModel, IsDesignTimeCreatable=True}">
+    <Grid SizeChanged="Grid_SizeChanged" Margin="8">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="1*"/>
@@ -62,55 +64,56 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" x:Name="BarRow"/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Rectangle x:Name="Bin00Bar" Grid.Column="1" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin01Bar" Grid.Column="3" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin02Bar" Grid.Column="5" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin03Bar" Grid.Column="7" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin04Bar" Grid.Column="9" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin05Bar" Grid.Column="11" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin06Bar" Grid.Column="13" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin07Bar" Grid.Column="15" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin08Bar" Grid.Column="17" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin09Bar" Grid.Column="19" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin10Bar" Grid.Column="21" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin11Bar" Grid.Column="23" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin12Bar" Grid.Column="25" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin13Bar" Grid.Column="27" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin14Bar" Grid.Column="29" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin15Bar" Grid.Column="31" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin16Bar" Grid.Column="33" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin17Bar" Grid.Column="35" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin18Bar" Grid.Column="37" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin19Bar" Grid.Column="39" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin20Bar" Grid.Column="41" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin21Bar" Grid.Column="43" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin22Bar" Grid.Column="45" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <Rectangle x:Name="Bin23Bar" Grid.Column="47" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
-        <TextBlock Text="00" Grid.Column="1"  Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="01" Grid.Column="3"  Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="02" Grid.Column="5"  Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="03" Grid.Column="7"  Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="04" Grid.Column="9"  Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="05" Grid.Column="11" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="06" Grid.Column="13" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="07" Grid.Column="15" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="08" Grid.Column="17" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="09" Grid.Column="19" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="10" Grid.Column="21" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="11" Grid.Column="23" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="12" Grid.Column="25" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="13" Grid.Column="27" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="14" Grid.Column="29" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="15" Grid.Column="31" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="16" Grid.Column="33" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="17" Grid.Column="35" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="18" Grid.Column="37" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="19" Grid.Column="39" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="20" Grid.Column="41" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="21" Grid.Column="43" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="22" Grid.Column="45" Grid.Row="1" HorizontalAlignment="Center"/>
-        <TextBlock Text="23" Grid.Column="47" Grid.Row="1" HorizontalAlignment="Center"/>
+        <local:AxisLabels Width="50" Grid.Column="0" Orientation="Vertical" TickPosition="End" MinTickSpacing="30" TickInfos="{Binding ValueTickInfos, Mode=OneWay}" MaxTickCount="{Binding ValueMaxTickCount, Mode=OneWayToSource}"/>
+        <Rectangle x:Name="Bin00Bar" Grid.Column="2" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin01Bar" Grid.Column="4" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin02Bar" Grid.Column="6" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin03Bar" Grid.Column="8" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin04Bar" Grid.Column="10" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin05Bar" Grid.Column="12" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin06Bar" Grid.Column="14" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin07Bar" Grid.Column="16" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin08Bar" Grid.Column="18" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin09Bar" Grid.Column="20" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin10Bar" Grid.Column="22" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin11Bar" Grid.Column="24" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin12Bar" Grid.Column="26" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin13Bar" Grid.Column="28" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin14Bar" Grid.Column="30" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin15Bar" Grid.Column="32" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin16Bar" Grid.Column="34" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin17Bar" Grid.Column="36" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin18Bar" Grid.Column="38" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin19Bar" Grid.Column="40" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin20Bar" Grid.Column="42" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin21Bar" Grid.Column="44" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin22Bar" Grid.Column="46" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <Rectangle x:Name="Bin23Bar" Grid.Column="48" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
+        <TextBlock Text="00" Grid.Column="2"  Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="01" Grid.Column="4"  Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="02" Grid.Column="6"  Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="03" Grid.Column="8"  Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="04" Grid.Column="10"  Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="05" Grid.Column="12" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="06" Grid.Column="14" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="07" Grid.Column="16" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="08" Grid.Column="18" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="09" Grid.Column="20" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="10" Grid.Column="22" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="11" Grid.Column="24" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="12" Grid.Column="26" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="13" Grid.Column="28" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="14" Grid.Column="30" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="15" Grid.Column="32" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="16" Grid.Column="34" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="17" Grid.Column="36" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="18" Grid.Column="38" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="19" Grid.Column="40" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="20" Grid.Column="42" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="21" Grid.Column="44" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="22" Grid.Column="46" Grid.Row="1" HorizontalAlignment="Center"/>
+        <TextBlock Text="23" Grid.Column="48" Grid.Row="1" HorizontalAlignment="Center"/>
     </Grid>
 </Window>
