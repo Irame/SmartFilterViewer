@@ -53,6 +53,23 @@ namespace SmartFilterViewer
         public Color ShapeColor { get => shapeColor; set => SetAndNotify(value, ref shapeColor); }
 
         public HistogramWindow HistogramWindow { get; set; } = new HistogramWindow();
+
+        public void LoadData()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                DataList = SensorDataList.FromFile(openFileDialog.FileName);
+            }
+        }
+
+        public void ShowHistogram()
+        {
+            if (HistogramWindow.IsVisible)
+                HistogramWindow.Activate();
+            else
+                HistogramWindow.Show();
+        }
     }
 
     public class PropertyDropdownItem
@@ -344,6 +361,21 @@ namespace SmartFilterViewer
         {
             CurrentDataTime = RelativeToDataTime(pos);
         }
+
+        public void OnSensorClicked(SensorViewModel sensorViewModel, MouseButton mouseButton)
+        {
+            if (mouseButton == MouseButton.Left)
+            {
+                isPaused = true;
+                sensorViewModel.LoadData();
+                lastTimerTick = DateTime.Now;
+                isPaused = false;
+            }
+            else if (mouseButton == MouseButton.Right)
+            {
+                sensorViewModel.ShowHistogram();
+            }
+        }
     }
 
 
@@ -368,20 +400,6 @@ namespace SmartFilterViewer
             ViewModel.Update();
         }
 
-        private void LoadDataForSensor(SensorViewModel info)
-        {
-            ViewModel.isPaused = true;
-
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
-            {
-                info.DataList = SensorDataList.FromFile(openFileDialog.FileName);
-            }
-
-            ViewModel.lastTimerTick = DateTime.Now;
-            ViewModel.isPaused = false;
-        }
-
         private void ResetZoomBtn_Click(object sender, RoutedEventArgs e)
         {
             TimelineGraph.ResetZoom();
@@ -401,21 +419,21 @@ namespace SmartFilterViewer
             ViewModel.isPaused = false;
         }
 
+        private void Sensor_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            (sender as Shape).CaptureMouse();
+        }
+
         private void Sensor_MouseUp(object sender, MouseButtonEventArgs e)
         {
             var shape = sender as Shape;
-            var info = shape.DataContext as SensorViewModel;
 
-            if (e.ChangedButton == MouseButton.Left)
+            if (shape.IsMouseCaptured)
             {
-                LoadDataForSensor(info);
-            }
-            else if (e.ChangedButton == MouseButton.Right)
-            {
-                if (info.HistogramWindow.IsVisible)
-                    info.HistogramWindow.Activate();
-                else
-                    info.HistogramWindow.Show();
+                shape.ReleaseMouseCapture();
+
+                if (shape.IsMouseOver)
+                    ViewModel.OnSensorClicked(shape.DataContext as SensorViewModel, e.ChangedButton);
             }
         }
     }
