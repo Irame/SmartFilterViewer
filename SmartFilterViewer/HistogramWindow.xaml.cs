@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace SmartFilterViewer
 {
@@ -136,6 +137,23 @@ namespace SmartFilterViewer
         private void Grid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             UpdateBars();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, (DispatcherOperationCallback)delegate (object o)
+            {
+                Hide();
+                return null;
+            }, null);
+
+            e.Cancel = true;
+        }
+
+        private void Window_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (IsVisible)
+                UpdateBars();
         }
     }
 }

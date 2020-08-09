@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartFilterViewer"
         mc:Ignorable="d"
-        Title="HistogramWindow" Height="250" Width="450">
+        Title="HistogramWindow" Height="250" Width="450"
+        Closing="Window_Closing"
+        IsVisibleChanged="Window_IsVisibleChanged">
     <Grid SizeChanged="Grid_SizeChanged">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>

@@ -167,6 +167,7 @@ namespace SmartFilterViewer
             for (int i = 0; i < 9; i++)
             {
                 var sensorVM = new SensorViewModel { GraphColor = HsvColor.FromHSV(180 + i * 15, 1, 1) };
+                sensorVM.HistogramWindow.Title = $"Histogramm - Sensor {i + 1}";
                 SensorInfos.Add(sensorVM);
                 sensorVM.PropertyChanged += (s, e) =>
                 {

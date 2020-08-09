@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SmartFilterViewer"
         xmlns:converter="clr-namespace:SmartFilterViewer.Converter"
         mc:Ignorable="d"
-        Title="MainWindow" Height="610.567" Width="548"
+        Title="SmartFilterViewer" Height="610.567" Width="548"
         Loaded="Window_Loaded"
         Closed="Window_Closed"
         d:DataContext="{d:DesignInstance Type=local:ViewModel, IsDesignTimeCreatable=True}">
