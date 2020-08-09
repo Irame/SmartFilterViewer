@@ -23,6 +23,18 @@ namespace SmartFilterViewer
         public List<Point> Data { get; set; }
     }
 
+    public struct Viewport
+    {
+        public Point Offset { get; private set; }
+        public Size Size { get; private set; }
+
+        public Viewport(double xOffset, double yOffset, double width, double height)
+        {
+            Offset = new Point(xOffset, yOffset);
+            Size = new Size(width, height);
+        }
+    }
+
     /// <summary>
     /// Interaktionslogik für TimelineGraph.xaml
     /// </summary>
@@ -33,20 +45,24 @@ namespace SmartFilterViewer
             get { return (IEnumerable<TimelineGraphData>)GetValue(DataProperty); }
             set { SetValue(DataProperty, value); }
         }
-
         public static readonly DependencyProperty DataProperty =
             DependencyProperty.Register("Data", typeof(IEnumerable<TimelineGraphData>), typeof(TimelineGraph), new PropertyMetadata(null, DataPropertyChanged));
-
 
         public double Progress
         {
             get { return (double)GetValue(ProgressProperty); }
             set { SetValue(ProgressProperty, value); }
         }
-
         public static readonly DependencyProperty ProgressProperty =
             DependencyProperty.Register("Progress", typeof(double), typeof(TimelineGraph), new PropertyMetadata(0.0, ProgressPropertyChanged));
 
+        public Viewport Viewport
+        {
+            get { return (Viewport)GetValue(ViewportProperty); }
+            set { SetValue(ViewportProperty, value); }
+        }
+        public static readonly DependencyProperty ViewportProperty =
+            DependencyProperty.Register("Viewport", typeof(Viewport), typeof(TimelineGraph), new PropertyMetadata(new Viewport(0, 0, 1, 1)));
 
         private static void DataPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => (d as TimelineGraph).OnDataChanged();
         private static void ProgressPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => (d as TimelineGraph).OnProgressChanged();
@@ -182,9 +198,7 @@ namespace SmartFilterViewer
                 var downSclaedPosX = pointToScaledRelPos(mouseDownPos.X, Canvas.ActualWidth);
                 var left = Math.Min(downSclaedPosX, upScaledPosX);
                 var right = Math.Max(downSclaedPosX, upScaledPosX);
-                zoomOffset = left;
-                zoomFactor = 1 / (right - left);
-                DrawGraphs();
+                SetZoomParams(1 / (right - left), left);
             }
             else
             {
@@ -217,6 +231,8 @@ namespace SmartFilterViewer
         {
             zoomFactor = factor;
             zoomOffset = offset;
+
+            Viewport = new Viewport(zoomOffset, 0, 1/zoomFactor, 1);
 
             DrawGraphs();
             UpdateTimeIndicator();

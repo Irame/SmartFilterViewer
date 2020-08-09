@@ -113,6 +113,17 @@ namespace SmartFilterViewer
         }
         public List<TickInfo> TimelineTickInfos { get => timelineTickInfos; set => SetAndNotify(value, ref timelineTickInfos); }
 
+        public int TimelineGraphMaxTickCount
+        {
+            get => timelineGraphMaxTickCount;
+            set
+            {
+                timelineGraphMaxTickCount = value;
+                UpdateTimelineGraphTickInfos();
+            }
+        }
+        public List<TickInfo> TimelineGraphTickInfos { get => timelineGraphTickInfos; set => SetAndNotify(value, ref timelineGraphTickInfos); }
+
         public int HeatLegendMaxTickCount
         {
             get => heatLegendMaxTickCount;
@@ -135,6 +146,16 @@ namespace SmartFilterViewer
         }
         public List<TickInfo> GraphLegendTickInfos { get => graphLegendTickInfos; set => SetAndNotify(value, ref graphLegendTickInfos); }
 
+        private Viewport viewport;
+        public Viewport Viewport
+        {
+            set
+            {
+                viewport = value;
+                UpdateTimelineGraphTickInfos();
+            }
+        }
+
         public DateTime lastTimerTick;
         public DateTime dataStartTime;
         public double dataTimeInMillisec;
@@ -146,7 +167,9 @@ namespace SmartFilterViewer
         private int heatLegendMaxTickCount;
         private int graphLegendMaxTickCount;
         private int timelineMaxTickCount;
+        private int timelineGraphMaxTickCount;
         private List<TickInfo> timelineTickInfos;
+        private List<TickInfo> timelineGraphTickInfos;
         private List<TickInfo> heatLegendTickInfos;
         private List<TickInfo> graphLegendTickInfos;
 
@@ -200,6 +223,7 @@ namespace SmartFilterViewer
 
                         CalcMaxValiue();
                         UpdateTimelineTickInfos();
+                        UpdateTimelineGraphTickInfos();
 
                         OnNotifyPropertyChanged(nameof(ValidSensorInfos));
                         OnNotifyPropertyChanged(nameof(TimelineGraphData));
@@ -247,10 +271,20 @@ namespace SmartFilterViewer
 
         private void UpdateTimelineTickInfos()
         {
-            var tickCount = Math.Min(timelineMaxTickCount, 100);
+            TimelineTickInfos = GenerateTimelineTickInfo(timelineMaxTickCount);
+        }
 
-            var tickGap = TimeSpan.FromMilliseconds(dataTimeInMillisec / (tickCount - 1));
-            var curTick = TimeSpan.Zero;
+        private void UpdateTimelineGraphTickInfos()
+        {
+            TimelineGraphTickInfos = GenerateTimelineTickInfo(timelineGraphMaxTickCount, viewport.Offset.X, viewport.Offset.X + viewport.Size.Width);
+        }
+
+        private List<TickInfo> GenerateTimelineTickInfo(int maxTickCount, double relFrom = 0, double relTo = 1)
+        {
+            var tickCount = Math.Min(maxTickCount, 100);
+
+            var tickGap = TimeSpan.FromMilliseconds((relTo - relFrom) * dataTimeInMillisec / (tickCount - 1));
+            var curTick = TimeSpan.FromMilliseconds(relFrom * dataTimeInMillisec);
 
             var newTickInfos = new List<TickInfo>();
             for (int i = 0; i < tickCount; i++)
@@ -258,7 +292,7 @@ namespace SmartFilterViewer
                 newTickInfos.Add(new TickInfo { Pos = (double)i / (tickCount - 1), Label = curTick.ToString(@"hh\:mm\:ss") });
                 curTick += tickGap;
             }
-            TimelineTickInfos = newTickInfos;
+            return newTickInfos;
         }
 
 
