@@ -55,6 +55,17 @@ namespace SmartFilterViewer
         public HistogramWindow HistogramWindow { get; set; } = new HistogramWindow();
     }
 
+    public class PropertyDropdownItem
+    {
+        public PropertyInfo PropertyInfo { get; set; }
+
+        public override string ToString()
+        {
+            var attr = Attribute.GetCustomAttribute(PropertyInfo, typeof(NiceNameAttribute)) as NiceNameAttribute;
+            return attr?.Name ?? PropertyInfo.Name;
+        }
+    }
+
     public class ViewModel : PropertyChangedBase
     {
         private DateTime currentDataTime;
@@ -150,7 +161,14 @@ namespace SmartFilterViewer
                 propInfo = value;
                 CalcMaxValiue();
                 OnNotifyPropertyChanged(nameof(TimelineGraphData));
+                OnNotifyPropertyChanged(nameof(SelectedPropertyDropdownItem));
             }
+        }
+
+        public List<PropertyDropdownItem> PropSelectItems { get; set; }
+        public PropertyDropdownItem SelectedPropertyDropdownItem { 
+            get => PropSelectItems.FirstOrDefault(x => x.PropertyInfo == PropInfo); 
+            set => PropInfo = value.PropertyInfo; 
         }
 
         public IEnumerable<SensorViewModel> ValidSensorInfos => SensorInfos.Where(x => x.DataList != null);
@@ -188,6 +206,10 @@ namespace SmartFilterViewer
                     }
                 };
             }
+
+            PropSelectItems = typeof(SensorData).GetProperties()
+                .Where(x => Attribute.GetCustomAttribute(x, typeof(NiceNameAttribute)) != null)
+                .Select(x => new PropertyDropdownItem { PropertyInfo = x }).ToList();
         }
 
         private void CalcMaxValiue()
@@ -331,37 +353,12 @@ namespace SmartFilterViewer
             TimelineGraph.ResetZoom();
         }
 
-        class PropertyDropdownItem
-        {
-            public PropertyInfo PropertyInfo { get; set; }
-
-            public override string ToString()
-            {
-                var attr = Attribute.GetCustomAttribute(PropertyInfo, typeof(NiceNameAttribute)) as NiceNameAttribute;
-                return attr?.Name ?? PropertyInfo.Name;
-            }
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            var dropDownItems = typeof(SensorData).GetProperties()
-                .Where(x => Attribute.GetCustomAttribute(x, typeof(NiceNameAttribute)) != null)
-                .Select(x => new PropertyDropdownItem { PropertyInfo = x }).ToList();
-            ValuesComboBox.ItemsSource = dropDownItems;
-            ValuesComboBox.SelectedItem = dropDownItems.FirstOrDefault(x => x.PropertyInfo == ViewModel.PropInfo);
-        }
-
         private void Window_Closed(object sender, EventArgs e)
         {
             foreach (var info in ViewModel.SensorInfos)
             {
                 info.HistogramWindow.Close();
             }
-        }
-
-        private void ValuesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ViewModel.PropInfo = (ValuesComboBox.SelectedItem as PropertyDropdownItem).PropertyInfo;
         }
 
         private void StartAnimationBtn_Click(object sender, RoutedEventArgs e)

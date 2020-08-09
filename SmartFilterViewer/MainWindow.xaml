@@ -7,7 +7,6 @@
         xmlns:converter="clr-namespace:SmartFilterViewer.Converter"
         mc:Ignorable="d"
         Title="SmartFilterViewer" Height="610.567" Width="548"
-        Loaded="Window_Loaded"
         Closed="Window_Closed"
         d:DataContext="{d:DesignInstance Type=local:ViewModel, IsDesignTimeCreatable=True}">
     <Window.Resources>
@@ -81,6 +80,6 @@
         </DockPanel>
         <local:ScrubProgressBar x:Name="PlaybackProgressBar" Value="{Binding Progress, Mode=TwoWay}" Minimum="0" Maximum="1" Height="20" Margin="8, 8, 8, 0" Grid.Row="3" Cursor="Hand" IsScrubbing="{Binding IsScrubbing, Mode=OneWayToSource}"/>
         <local:AxisLabels MaxTickCount="{Binding TimelineMaxTickCount, Mode=OneWayToSource}" TickInfos="{Binding TimelineTickInfos, Mode=OneWay}" MinTickSpacing="100" Grid.Row="4" Height="30" Margin="8, 0, 8, 8" Orientation="Horizontal"/>
-        <ComboBox x:Name="ValuesComboBox" HorizontalAlignment="Left" Margin="8" Width="200" Grid.Row="0" SelectionChanged="ValuesComboBox_SelectionChanged"/>
+        <ComboBox x:Name="ValuesComboBox" HorizontalAlignment="Left" Margin="8" Width="200" Grid.Row="0" ItemsSource="{Binding PropSelectItems, Mode=OneTime}" SelectedValue="{Binding SelectedPropertyDropdownItem, Mode=TwoWay}"/>
     </Grid>
 </Window>
