@@ -26,6 +26,7 @@ namespace SmartFilterViewer
 {
     public class SensorViewModel : PropertyChangedBase
     {
+        private string loadedFile;
         private SensorDataList dataList;
         private Color graphColor;
         private Color shapeColor;
@@ -54,12 +55,21 @@ namespace SmartFilterViewer
 
         public HistogramWindow HistogramWindow { get; set; } = new HistogramWindow();
 
-        public void LoadData()
+        public void LoadDataFromUserFile()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
-                DataList = SensorDataList.FromFile(openFileDialog.FileName);
+                LoadDataFromFile(openFileDialog.FileName);
+            }
+        }
+
+        public void LoadDataFromFile(string fileName)
+        {
+            if (fileName != null)
+            {
+                DataList = SensorDataList.FromFile(fileName);
+                loadedFile = fileName;
             }
         }
 
@@ -69,6 +79,22 @@ namespace SmartFilterViewer
                 HistogramWindow.Activate();
             else
                 HistogramWindow.Show();
+        }
+
+        public void ApplySettings(SensorSettings settings)
+        {
+            GraphColor = settings.Color ?? GraphColor;
+            LoadDataFromFile(settings.FileName);
+        }
+
+        public SensorSettings GenerateSettings()
+        {
+            var result = new SensorSettings();
+
+            result.Color = GraphColor;
+            result.FileName = loadedFile;
+
+            return result;
         }
     }
 
@@ -214,6 +240,20 @@ namespace SmartFilterViewer
             set => PropInfo = value.PropertyInfo;
         }
 
+        private List<KeyValuePair<GradientKey, Color>> dataGradientStops;
+        public List<KeyValuePair<GradientKey, Color>> DataGradientStops
+        {
+            get => dataGradientStops;
+            set
+            {
+                SetAndNotify(value, ref dataGradientStops);
+                UpdateGradientStops();
+            }
+        }
+
+        private GradientStopCollection gradientStops;
+        public GradientStopCollection GradientStops { get => gradientStops; set => SetAndNotify(value, ref gradientStops); }
+
         public IEnumerable<SensorViewModel> ValidSensorInfos => SensorInfos.Where(x => x.DataList != null);
 
         public ViewModel()
@@ -223,6 +263,12 @@ namespace SmartFilterViewer
             propInfo = typeof(SensorData).GetProperty(nameof(SensorData.PM2_5_ug_m3));
 
             IsPaused = true;
+
+            DataGradientStops = new List<KeyValuePair<GradientKey, Color>>();
+            DataGradientStops.Add(new KeyValuePair<GradientKey, Color>(new GradientKey { IsRelative = true, Value = 1 }, Colors.Red));
+            DataGradientStops.Add(new KeyValuePair<GradientKey, Color>(new GradientKey { IsRelative = true, Value = 0.5 }, Colors.Yellow));
+            DataGradientStops.Add(new KeyValuePair<GradientKey, Color>(new GradientKey { IsRelative = true, Value = 0 }, Color.FromRgb(0, 255, 0)));
+            UpdateGradientStops();
 
             SensorInfos = new List<SensorViewModel>();
             for (int i = 0; i < 9; i++)
@@ -261,6 +307,7 @@ namespace SmartFilterViewer
             if (ValidSensorInfos.Any())
                 maxValue = ValidSensorInfos.SelectMany(x => x.DataList).Select(x => GetValue(x)).Max();
 
+            UpdateGradientStops();
             UpdateHeatLegendTickInfos();
             UpdateGraphLegendTickInfos();
         }
@@ -273,6 +320,48 @@ namespace SmartFilterViewer
         private void UpdateGraphLegendTickInfos()
         {
             GraphLegendTickInfos = GenerateValueTickInfo(graphLegendMaxTickCount);
+        }
+
+        private void UpdateGradientStops()
+        {
+            GradientStops = new GradientStopCollection(DataGradientStops
+                .Select(x => new GradientStop(x.Value, x.Key.IsRelative ? x.Key.Value : x.Key.Value / maxValue))
+                .OrderBy(x => x.Offset));
+        }
+
+        public void ApplySettings(Settings settings)
+        {
+            var settingsProp = PropSelectItems.FirstOrDefault(x => x.ToString() == settings.Property);
+            if (settingsProp != null)
+                SelectedPropertyDropdownItem = settingsProp;
+
+            for (int i = 0; i < SensorInfos.Count; i++)
+            {
+                if (settings.Sensors.TryGetValue(i + 1, out SensorSettings sensorSettings))
+                    SensorInfos[i].ApplySettings(sensorSettings);
+            }
+
+            if (settings.ColorGradient.Any())
+                DataGradientStops = settings.ColorGradient.ToList();
+        }
+
+        public Settings GenerateSettings()
+        {
+            var result = new Settings();
+
+            result.Property = SelectedPropertyDropdownItem.ToString();
+
+            for (int i = 0; i < SensorInfos.Count; i++)
+            {
+                result.Sensors.Add(i + 1, SensorInfos[i].GenerateSettings());
+            }
+
+            foreach (var item in DataGradientStops)
+            {
+                result.ColorGradient.Add(item.Key, item.Value);
+            }
+
+            return result;
         }
 
         private List<TickInfo> GenerateValueTickInfo(int maxTickCount)
@@ -345,8 +434,37 @@ namespace SmartFilterViewer
                 }
 
                 var factor = value / maxValue;
-                factor = Math.Pow(factor, 0.3);
-                info.ShapeColor = HsvColor.FromHSV((float)((1 - factor) * 120), 1, 1);
+
+                if (GradientStops.Count == 0)
+                    info.ShapeColor = Colors.Transparent;
+                else if (GradientStops.Count == 1)
+                    info.ShapeColor = GradientStops[0].Color;
+                else if (GradientStops[0].Offset > factor)
+                    info.ShapeColor = GradientStops[0].Color;
+                else
+                {
+                    for (int j = 1; j < GradientStops.Count; j++)
+                    {
+                        var gradientStop = GradientStops[j];
+
+                        if (gradientStop.Offset > factor)
+                        {
+                            var prevGradientStop = GradientStops[j - 1];
+
+                            var diff = (gradientStop.Offset - prevGradientStop.Offset);
+                            var relFactor = (factor - prevGradientStop.Offset);
+                            var colFacor = (float)(relFactor / diff);
+                            info.ShapeColor = prevGradientStop.Color * (1 - colFacor) + gradientStop.Color * colFacor;
+                            break;
+                        }
+
+                        if (j == GradientStops.Count - 1)
+                        {
+                            info.ShapeColor = gradientStop.Color;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -387,7 +505,7 @@ namespace SmartFilterViewer
             if (mouseButton == MouseButton.Left)
             {
                 PauseAnimation();
-                sensorViewModel.LoadData();
+                sensorViewModel.LoadDataFromUserFile();
                 StartAnimation();
             }
             else if (mouseButton == MouseButton.Right)
@@ -462,6 +580,24 @@ namespace SmartFilterViewer
 
                 if (shape.IsMouseOver)
                     ViewModel.OnSensorClicked(shape.DataContext as SensorViewModel, e.ChangedButton);
+            }
+        }
+
+        private void LoadSettingsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                ViewModel.ApplySettings(Settings.FromHJson(openFileDialog.FileName));
+            }
+        }
+
+        private void SaveSettingsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                ViewModel.GenerateSettings().ToHJson(saveFileDialog.FileName);
             }
         }
     }

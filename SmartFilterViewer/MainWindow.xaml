@@ -23,6 +23,11 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" LastChildFill="False" Margin="8">
+            <ComboBox x:Name="ValuesComboBox" DockPanel.Dock="Left" Width="200" ItemsSource="{Binding PropSelectItems, Mode=OneTime}" SelectedValue="{Binding SelectedPropertyDropdownItem, Mode=TwoWay}"/>
+            <Button Content="Save Settings" DockPanel.Dock="Right" Margin="8, 0, 0, 0" Padding="8,0,8,0" Click="SaveSettingsBtn_Click"/>
+            <Button Content="Load Settings" DockPanel.Dock="Right" Padding="8,0,8,0" Click="LoadSettingsBtn_Click"/>
+        </DockPanel>
         <Grid Grid.Row="1" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -32,13 +37,7 @@
             <local:AxisLabels Grid.Column="0" Width="50" Margin="8, 8, 0, 8" Orientation="Vertical" TickInfos="{Binding HeatLegendTickInfos, Mode=OneWay}" MaxTickCount="{Binding HeatLegendMaxTickCount, Mode=OneWayToSource}" TickPosition="End"/>
             <Rectangle Grid.Column="1" Width="20" Margin="0, 8, 8, 8">
                 <Rectangle.Fill>
-                    <LinearGradientBrush>
-                        <LinearGradientBrush.GradientStops>
-                            <GradientStop Color="#FFFF0000" Offset="0"/>
-                            <GradientStop Color="#FFFFFF00" Offset="0.5"/>
-                            <GradientStop Color="#FF00FF00" Offset="1"/>
-                        </LinearGradientBrush.GradientStops>
-                    </LinearGradientBrush>
+                    <LinearGradientBrush StartPoint="0.5,1" EndPoint="0.5,0" GradientStops="{Binding GradientStops, Mode=OneWay}"/>
                 </Rectangle.Fill>
             </Rectangle>
             <Border Grid.Column="2" Margin="8" MaxWidth="300" MaxHeight="300" BorderThickness="2" BorderBrush="Black">
@@ -78,6 +77,8 @@
             <local:TimelineGraph Grid.Column="1" Grid.Row="0" x:Name="TimelineGraph" Progress="{Binding Progress, Mode=TwoWay}" Data="{Binding TimelineGraphData}" Viewport="{Binding Viewport, Mode=OneWayToSource}" HorizontalAlignment="Stretch" Cursor="Hand"/>
             <local:AxisLabels Grid.Column="1" Grid.Row="1" MaxTickCount="{Binding TimelineGraphMaxTickCount, Mode=OneWayToSource}" TickInfos="{Binding TimelineGraphTickInfos, Mode=OneWay}" MinTickSpacing="100" Height="30" Orientation="Horizontal"/>
         </Grid>
+        <local:ScrubProgressBar x:Name="PlaybackProgressBar" Value="{Binding Progress, Mode=TwoWay}" Minimum="0" Maximum="1" Height="20" Margin="8, 8, 8, 0" Grid.Row="3" Cursor="Hand" IsScrubbing="{Binding IsScrubbing, Mode=OneWayToSource}"/>
+        <local:AxisLabels MaxTickCount="{Binding TimelineMaxTickCount, Mode=OneWayToSource}" TickInfos="{Binding TimelineTickInfos, Mode=OneWay}" MinTickSpacing="100" Grid.Row="4" Height="30" Margin="8, 0, 8, 8" Orientation="Horizontal"/>
         <DockPanel HorizontalAlignment="Stretch" Margin="8" Grid.Row="5" LastChildFill="False">
             <Button Content="▶" Visibility="{Binding IsPaused, Converter={converter:BoolToVisibilityConverter HideVisibility=Collapsed, Inverted=False}}" DockPanel.Dock="Left" VerticalAlignment="Center" Width="25" Click="StartAnimationBtn_Click"/>
             <Button Content="❚❚" Visibility="{Binding IsPaused, Converter={converter:BoolToVisibilityConverter HideVisibility=Collapsed, Inverted=True}}" DockPanel.Dock="Left" VerticalAlignment="Center" Width="25" Click="PauseAnimationBtn_Click"/>
@@ -85,10 +86,7 @@
             <TextBlock x:Name="TimestampLabel" DockPanel.Dock="Left" Text="{Binding CurrentTimestamp, Mode=OneWay, Converter={StaticResource TimeSpanToNegativeFormatedString_ValueConverter}, ConverterParameter='hh\\:mm\\:ss\\.ff'}" Margin="10, 0, 0, 0" VerticalAlignment="Center"/>
             <Slider x:Name="PlaybackSpeedSlider" DockPanel.Dock="Left" Value="{Binding PlaybackFactor, Mode=TwoWay}" VerticalAlignment="Center" Margin="40,0,0,0" Width="155" Minimum="0.0" Maximum="100.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.1"/>
             <TextBlock x:Name="PlaybackSpeedLabel" DockPanel.Dock="Left" Text="{Binding PlaybackFactor, StringFormat={}{0:0.0}x}" VerticalAlignment="Center"/>
-            <Button Content="Reset Zoom" Width="75" DockPanel.Dock="Right" Click="ResetZoomBtn_Click"/>
+            <Button Content="Reset Zoom" Padding="8,0,8,0" DockPanel.Dock="Right" Click="ResetZoomBtn_Click"/>
         </DockPanel>
-        <local:ScrubProgressBar x:Name="PlaybackProgressBar" Value="{Binding Progress, Mode=TwoWay}" Minimum="0" Maximum="1" Height="20" Margin="8, 8, 8, 0" Grid.Row="3" Cursor="Hand" IsScrubbing="{Binding IsScrubbing, Mode=OneWayToSource}"/>
-        <local:AxisLabels MaxTickCount="{Binding TimelineMaxTickCount, Mode=OneWayToSource}" TickInfos="{Binding TimelineTickInfos, Mode=OneWay}" MinTickSpacing="100" Grid.Row="4" Height="30" Margin="8, 0, 8, 8" Orientation="Horizontal"/>
-        <ComboBox x:Name="ValuesComboBox" HorizontalAlignment="Left" Margin="8" Width="200" Grid.Row="0" ItemsSource="{Binding PropSelectItems, Mode=OneTime}" SelectedValue="{Binding SelectedPropertyDropdownItem, Mode=TwoWay}"/>
     </Grid>
 </Window>
