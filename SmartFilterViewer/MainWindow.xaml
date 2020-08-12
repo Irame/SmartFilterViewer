@@ -34,7 +34,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
-            <local:AxisLabels Grid.Column="0" Width="50" Margin="8, 8, 0, 8" Orientation="Vertical" TickInfos="{Binding HeatLegendTickInfos, Mode=OneWay}" MaxTickCount="{Binding HeatLegendMaxTickCount, Mode=OneWayToSource}" TickPosition="End"/>
+            <local:AxisLabels Grid.Column="0" Margin="8, 8, 0, 8" Orientation="Vertical" TextAlignment="End" DescLabel="{Binding Unit}" TickInfos="{Binding HeatLegendTickInfos, Mode=OneWay}" MaxTickCount="{Binding HeatLegendMaxTickCount, Mode=OneWayToSource}" TickPosition="End"/>
             <Rectangle Grid.Column="1" Width="20" Margin="0, 8, 8, 8">
                 <Rectangle.Fill>
                     <LinearGradientBrush StartPoint="0.5,1" EndPoint="0.5,0" GradientStops="{Binding GradientStops, Mode=OneWay}"/>
@@ -73,7 +73,7 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <local:AxisLabels Grid.Column="0" Grid.Row="0" Width="50" Orientation="Vertical" TickInfos="{Binding GraphLegendTickInfos, Mode=OneWay}" MaxTickCount="{Binding GraphLegendMaxTickCount, Mode=OneWayToSource}" TickPosition="End" MinTickSpacing="40"/>
+            <local:AxisLabels Grid.Column="0" Grid.Row="0" Orientation="Vertical" TextAlignment="End" DescLabel="{Binding Unit}" TickInfos="{Binding GraphLegendTickInfos, Mode=OneWay}" MaxTickCount="{Binding GraphLegendMaxTickCount, Mode=OneWayToSource}" TickPosition="End" MinTickSpacing="40"/>
             <local:TimelineGraph Grid.Column="1" Grid.Row="0" x:Name="TimelineGraph" Progress="{Binding Progress, Mode=TwoWay}" Data="{Binding TimelineGraphData}" Viewport="{Binding Viewport, Mode=OneWayToSource}" HorizontalAlignment="Stretch" Cursor="Hand"/>
             <local:AxisLabels Grid.Column="1" Grid.Row="1" MaxTickCount="{Binding TimelineGraphMaxTickCount, Mode=OneWayToSource}" TickInfos="{Binding TimelineGraphTickInfos, Mode=OneWay}" MinTickSpacing="100" Height="30" Orientation="Horizontal"/>
         </Grid>

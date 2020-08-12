@@ -66,7 +66,7 @@
             <RowDefinition Height="1*" x:Name="BarRow"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <local:AxisLabels Width="50" Grid.Column="0" Orientation="Vertical" TickPosition="End" MinTickSpacing="30" TickInfos="{Binding ValueTickInfos, Mode=OneWay}" MaxTickCount="{Binding ValueMaxTickCount, Mode=OneWayToSource}"/>
+        <local:AxisLabels Grid.Column="0" Orientation="Vertical" TickPosition="End" MinTickSpacing="30" TextAlignment="End" TickInfos="{Binding ValueTickInfos, Mode=OneWay}" MaxTickCount="{Binding ValueMaxTickCount, Mode=OneWayToSource}"/>
         <Rectangle x:Name="Bin00Bar" Grid.Column="2" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
         <Rectangle x:Name="Bin01Bar" Grid.Column="4" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>
         <Rectangle x:Name="Bin02Bar" Grid.Column="6" Fill="Black" HorizontalAlignment="Stretch" StrokeThickness="0" VerticalAlignment="Bottom"/>

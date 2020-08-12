@@ -220,6 +220,7 @@ namespace SmartFilterViewer
 
         public bool IsScrubbing { get; set; }
 
+        public string Unit { get => unit; set => SetAndNotify(value, ref unit); }
 
         public PropertyInfo PropInfo
         {
@@ -230,6 +231,9 @@ namespace SmartFilterViewer
                 CalcMaxValiue();
                 OnNotifyPropertyChanged(nameof(TimelineGraphData));
                 OnNotifyPropertyChanged(nameof(SelectedPropertyDropdownItem));
+
+                var attr = Attribute.GetCustomAttribute(propInfo, typeof(NiceNameAttribute)) as NiceNameAttribute;
+                Unit = attr?.Name;
             }
         }
 
@@ -252,6 +256,8 @@ namespace SmartFilterViewer
         }
 
         private GradientStopCollection gradientStops;
+        private string unit;
+
         public GradientStopCollection GradientStops { get => gradientStops; set => SetAndNotify(value, ref gradientStops); }
 
         public IEnumerable<SensorViewModel> ValidSensorInfos => SensorInfos.Where(x => x.DataList != null);
@@ -259,8 +265,6 @@ namespace SmartFilterViewer
         public ViewModel()
         {
             PlaybackFactor = 1;
-
-            propInfo = typeof(SensorData).GetProperty(nameof(SensorData.PM2_5_ug_m3));
 
             IsPaused = true;
 
@@ -300,6 +304,8 @@ namespace SmartFilterViewer
             PropSelectItems = typeof(SensorData).GetProperties()
                 .Where(x => Attribute.GetCustomAttribute(x, typeof(NiceNameAttribute)) != null)
                 .Select(x => new PropertyDropdownItem { PropertyInfo = x }).ToList();
+
+            PropInfo = typeof(SensorData).GetProperty(nameof(SensorData.PM2_5_ug_m3));
         }
 
         private void CalcMaxValiue()
@@ -374,7 +380,7 @@ namespace SmartFilterViewer
             {
                 tickInfos.Add(new TickInfo { Pos = val / maxValue, Label = $"{val}" });
             }
-            tickInfos.Add(new TickInfo { Pos = 1, Label = $"{maxValue}" });
+            tickInfos.Add(new TickInfo { Pos = 1, Label = $"{maxValue:0}" });
             return tickInfos;
         }
 
@@ -392,14 +398,21 @@ namespace SmartFilterViewer
         {
             var tickCount = Math.Min(maxTickCount, 100);
 
-            var tickGap = TimeSpan.FromMilliseconds((relTo - relFrom) * dataTimeInMillisec / (tickCount - 1));
-            var curTick = TimeSpan.FromMilliseconds(relFrom * dataTimeInMillisec);
-
             var newTickInfos = new List<TickInfo>();
-            for (int i = 0; i < tickCount; i++)
+            if (tickCount == 1)
             {
-                newTickInfos.Add(new TickInfo { Pos = (double)i / (tickCount - 1), Label = curTick.NegativeFormat(@"hh\:mm\:ss") });
-                curTick += tickGap;
+                newTickInfos.Add(new TickInfo { Pos = 1 , Label = TimeSpan.FromMilliseconds(dataTimeInMillisec).NegativeFormat(@"hh\:mm\:ss") });
+            }
+            else
+            {
+                var tickGap = TimeSpan.FromMilliseconds((relTo - relFrom) * dataTimeInMillisec / (tickCount - 1));
+                var curTick = TimeSpan.FromMilliseconds(relFrom * dataTimeInMillisec);
+
+                for (int i = 0; i < tickCount; i++)
+                {
+                    newTickInfos.Add(new TickInfo { Pos = (double)i / (tickCount - 1), Label = curTick.NegativeFormat(@"hh\:mm\:ss") });
+                    curTick += tickGap;
+                }
             }
             return newTickInfos;
         }

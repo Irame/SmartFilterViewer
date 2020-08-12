@@ -10,7 +10,9 @@ using System.Windows.Shapes;
 
 namespace SmartFilterViewer
 {
-    public enum AxisLableTickPosition { Start, End, Both };
+    public enum AxisLableTickPosition { Start, End };
+
+    public enum AxisLabelTextAlignment { Start, Center, End };
 
     public class TickInfo
     {
@@ -20,9 +22,40 @@ namespace SmartFilterViewer
 
     public class AxisLabels : Grid
     {
-        public Orientation Orientation { get; set; }
+        private Orientation orientation;
+        public Orientation Orientation
+        {
+            get => orientation;
+            set
+            {
+                orientation = value;
+
+                RowDefinitions.Clear();
+                ColumnDefinitions.Clear();
+
+                if (orientation == Orientation.Horizontal)
+                {
+                    RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                    RowDefinitions.Add(new RowDefinition { Height = new GridLength(3) });
+                    RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });  // TODO: Should be 1* if Width is set
+                    RowDefinitions.Add(new RowDefinition { Height = new GridLength(3) });
+                    RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                }
+                else
+                {
+                    ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
+                    ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });  // TODO: Should be 1* if Width is set
+                    ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
+                    ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                }
+            }
+        }
 
         public AxisLableTickPosition TickPosition { get; set; }
+        public AxisLabelTextAlignment TextAlignment { get; set; } = AxisLabelTextAlignment.Center;
+
+        public double TickLength { get; set; } = 8;
 
         public double MinTickSpacing { get; set; } = 100;
 
@@ -44,7 +77,21 @@ namespace SmartFilterViewer
             DependencyProperty.Register("MaxTickCount", typeof(int), typeof(AxisLabels), new PropertyMetadata(0));
 
 
+
+        public string DescLabel
+        {
+            get { return (string)GetValue(DescLabelProperty); }
+            set { SetValue(DescLabelProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for DescLabel.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty DescLabelProperty =
+            DependencyProperty.Register("DescLabel", typeof(string), typeof(AxisLabels), new PropertyMetadata(null, DescLabelChanged));
+        private static void DescLabelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => (d as AxisLabels).OnDescLabelChanged();
+
+
         private List<TickControls> tickControlsList;
+        private TextBlock descLabel;
 
         public AxisLabels() : base()
         {
@@ -54,7 +101,6 @@ namespace SmartFilterViewer
         }
 
         private double length => Orientation == Orientation.Horizontal ? ActualWidth : ActualHeight;
-        private double space => Orientation == Orientation.Horizontal ? ActualHeight : ActualWidth;
 
         private void CalcMaxTickCount()
         {
@@ -84,6 +130,36 @@ namespace SmartFilterViewer
             }
         }
 
+        private void OnDescLabelChanged()
+        {
+            if (DescLabel != null)
+            {
+                if (descLabel == null)
+                {
+                    descLabel = new TextBlock();
+                    Children.Add(descLabel);
+                }
+
+                if (Orientation == Orientation.Vertical)
+                {
+                    descLabel.LayoutTransform = new RotateTransform(-90);
+                    descLabel.VerticalAlignment = VerticalAlignment.Center;
+                }
+                else
+                {
+                    descLabel.HorizontalAlignment = HorizontalAlignment.Center;
+                    descLabel.LayoutTransform = null;
+                }
+
+                descLabel.Text = DescLabel;
+            }
+            else if (descLabel != null)
+            {
+                Children.Remove(descLabel);
+                descLabel = null;
+            }
+        }
+
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
             base.OnRenderSizeChanged(sizeInfo);
@@ -101,15 +177,6 @@ namespace SmartFilterViewer
                     }
                 }
             }
-
-            if (Orientation == Orientation.Horizontal && sizeInfo.HeightChanged
-                || Orientation == Orientation.Vertical && sizeInfo.WidthChanged)
-            {
-                foreach(var item in tickControlsList)
-                {
-                    item.UpdateTickLengths();
-                }
-            }
         }
 
         private class TickControls : IDisposable
@@ -120,8 +187,7 @@ namespace SmartFilterViewer
             private Size textSize;
 
             public TextBlock Text;
-            public Rectangle tickStart;
-            public Rectangle tickEnd;
+            public Rectangle tick;
 
             private static Brush tickFillBrush;
 
@@ -138,74 +204,72 @@ namespace SmartFilterViewer
                 Text = new TextBlock();
                 parent.Children.Add(Text);
 
-                if (parent.TickPosition == AxisLableTickPosition.Start || parent.TickPosition == AxisLableTickPosition.Both)
-                {
-                    tickStart = new Rectangle();
-                    tickStart.Fill = tickFillBrush;
-                    parent.Children.Add(tickStart);
-                }
-
-                if (parent.TickPosition == AxisLableTickPosition.End || parent.TickPosition == AxisLableTickPosition.Both)
-                {
-                    tickEnd = new Rectangle();
-                    tickEnd.Fill = tickFillBrush;
-                    parent.Children.Add(tickEnd);
-                }
+                tick = new Rectangle();
+                tick.Fill = tickFillBrush;
+                parent.Children.Add(tick);
 
                 if (parent.Orientation == Orientation.Horizontal)
                 {
-                    Text.VerticalAlignment = VerticalAlignment.Center;
+                    switch (parent.TextAlignment)
+                    {
+                        case AxisLabelTextAlignment.Start:
+                            Text.VerticalAlignment = VerticalAlignment.Top; break;
+                        case AxisLabelTextAlignment.Center:
+                            Text.VerticalAlignment = VerticalAlignment.Center; break;
+                        case AxisLabelTextAlignment.End:
+                            Text.VerticalAlignment = VerticalAlignment.Bottom; break;
+                    }
+                    
                     Text.HorizontalAlignment = HorizontalAlignment.Left;
+                    SetRow(Text, 2);
 
-                    if (tickStart != null)
-                    {
-                        tickStart.VerticalAlignment = VerticalAlignment.Top;
-                        tickStart.HorizontalAlignment = HorizontalAlignment.Left;
-                        tickStart.Width = 1;
-                    }
+                    tick.HorizontalAlignment = HorizontalAlignment.Left;
+                    tick.Width = 1;
+                    tick.Height = parent.TickLength;
 
-                    if (tickEnd != null)
-                    {
-                        tickEnd.VerticalAlignment = VerticalAlignment.Bottom;
-                        tickEnd.HorizontalAlignment = HorizontalAlignment.Left;
-                        tickEnd.Width = 1;
-                    }
+                    if (parent.TickPosition == AxisLableTickPosition.Start)
+                        SetRow(tick, 0);
+                    else
+                        SetRow(tick, 4);
                 }
                 else
                 {
+                    switch (parent.TextAlignment)
+                    {
+                        case AxisLabelTextAlignment.Start:
+                            Text.HorizontalAlignment = HorizontalAlignment.Left; break;
+                        case AxisLabelTextAlignment.Center:
+                            Text.HorizontalAlignment = HorizontalAlignment.Center; break;
+                        case AxisLabelTextAlignment.End:
+                            Text.HorizontalAlignment = HorizontalAlignment.Right; break;
+                    }
+
                     Text.VerticalAlignment = VerticalAlignment.Top;
-                    Text.HorizontalAlignment = HorizontalAlignment.Center;
+                    SetColumn(Text, 2);
 
-                    if (tickStart != null)
-                    {
-                        tickStart.VerticalAlignment = VerticalAlignment.Top;
-                        tickStart.HorizontalAlignment = HorizontalAlignment.Left;
-                        tickStart.Height = 1;
-                    }
+                    tick.VerticalAlignment = VerticalAlignment.Top;
+                    tick.Height = 1;
+                    tick.Width = parent.TickLength;
 
-                    if (tickEnd != null)
-                    {
-                        tickEnd.VerticalAlignment = VerticalAlignment.Top;
-                        tickEnd.HorizontalAlignment = HorizontalAlignment.Right;
-                        tickEnd.Height = 1;
-                    }
+                    if (parent.TickPosition == AxisLableTickPosition.Start)
+                        SetColumn(tick, 0);
+                    else
+                        SetColumn(tick, 4);
                 }
             }
 
             public void Dispose()
             {
                 parent.Children.Remove(Text);
-                parent.Children.Remove(tickStart);
-                parent.Children.Remove(tickEnd);
+                parent.Children.Remove(tick);
             }
 
             public void Update(TickInfo info)
             {
                 Text.Text = info.Label;
                 textSize = Utils.MeasureString(info.Label, Text);
-                relPos = parent.Orientation == Orientation.Horizontal ? info.Pos : 1-info.Pos;
+                relPos = parent.Orientation == Orientation.Horizontal ? info.Pos : 1 - info.Pos;
 
-                UpdateTickLengths();
                 UpdateTickPosition();
             }
 
@@ -222,46 +286,13 @@ namespace SmartFilterViewer
 
                 if (parent.Orientation == Orientation.Horizontal)
                 {
-                    if (tickStart != null)
-                        tickStart.Margin = new Thickness(pos, 0, 0, 0);
-
-                    if (tickEnd != null)
-                        tickEnd.Margin = new Thickness(pos, 0, 0, 0);
-
+                    tick.Margin = new Thickness(pos, 0, 0, 0);
                     Text.Margin = new Thickness(textPos, 0, 0, 0);
                 }
                 else
                 {
-                    if (tickStart != null)
-                        tickStart.Margin = new Thickness(0, pos, 0, 0);
-
-                    if (tickEnd != null)
-                        tickEnd.Margin = new Thickness(0, pos, 0, 0);
-
+                    tick.Margin = new Thickness(0, pos, 0, 0);
                     Text.Margin = new Thickness(0, textPos, 0, 0);
-                }
-            }
-
-            public void UpdateTickLengths()
-            {
-                var textSpace = parent.Orientation == Orientation.Horizontal ? textSize.Height : textSize.Width;
-                var tickLengths = Math.Max(0, (parent.space - textSpace) / 2 - 2);
-
-                if (parent.Orientation == Orientation.Horizontal)
-                {
-                    if (tickStart != null)
-                        tickStart.Height = tickLengths;
-
-                    if (tickEnd != null)
-                        tickEnd.Height = tickLengths;
-                }
-                else
-                {
-                    if (tickStart != null)
-                        tickStart.Width = tickLengths;
-
-                    if (tickEnd != null)
-                        tickEnd.Width = tickLengths;
                 }
             }
         }
