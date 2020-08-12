@@ -22,6 +22,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <DockPanel Grid.Row="0" LastChildFill="False" Margin="8">
             <ComboBox x:Name="ValuesComboBox" DockPanel.Dock="Left" Width="200" ItemsSource="{Binding PropSelectItems, Mode=OneTime}" SelectedValue="{Binding SelectedPropertyDropdownItem, Mode=TwoWay}"/>
@@ -79,14 +80,21 @@
         </Grid>
         <local:ScrubProgressBar x:Name="PlaybackProgressBar" Value="{Binding Progress, Mode=TwoWay}" Minimum="0" Maximum="1" Height="20" Margin="8, 8, 8, 0" Grid.Row="3" Cursor="Hand" IsScrubbing="{Binding IsScrubbing, Mode=OneWayToSource}"/>
         <local:AxisLabels MaxTickCount="{Binding TimelineMaxTickCount, Mode=OneWayToSource}" TickInfos="{Binding TimelineTickInfos, Mode=OneWay}" MinTickSpacing="100" Grid.Row="4" Height="30" Margin="8, 0, 8, 8" Orientation="Horizontal"/>
-        <DockPanel HorizontalAlignment="Stretch" Margin="8" Grid.Row="5" LastChildFill="False">
+        <DockPanel HorizontalAlignment="Stretch" Margin="8, 8, 8, 4" Grid.Row="5" LastChildFill="False">
             <Button Content="▶" Visibility="{Binding IsPaused, Converter={converter:BoolToVisibilityConverter HideVisibility=Collapsed, Inverted=False}}" DockPanel.Dock="Left" VerticalAlignment="Center" Width="25" Click="StartAnimationBtn_Click"/>
             <Button Content="❚❚" Visibility="{Binding IsPaused, Converter={converter:BoolToVisibilityConverter HideVisibility=Collapsed, Inverted=True}}" DockPanel.Dock="Left" VerticalAlignment="Center" Width="25" Click="PauseAnimationBtn_Click"/>
             <Button Content="◼" Margin="4,0,0,0" DockPanel.Dock="Left" VerticalAlignment="Center" Width="25" Click="StopAnimationBtn_Click"/>
             <TextBlock x:Name="TimestampLabel" DockPanel.Dock="Left" Text="{Binding CurrentTimestamp, Mode=OneWay, Converter={StaticResource TimeSpanToNegativeFormatedString_ValueConverter}, ConverterParameter='hh\\:mm\\:ss\\.ff'}" Margin="10, 0, 0, 0" VerticalAlignment="Center"/>
-            <Slider x:Name="PlaybackSpeedSlider" DockPanel.Dock="Left" Value="{Binding PlaybackFactor, Mode=TwoWay}" VerticalAlignment="Center" Margin="40,0,0,0" Width="155" Minimum="0.0" Maximum="100.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.1"/>
-            <TextBlock x:Name="PlaybackSpeedLabel" DockPanel.Dock="Left" Text="{Binding PlaybackFactor, StringFormat={}{0:0.0}x}" VerticalAlignment="Center"/>
+            
+            
             <Button Content="Reset Zoom" Padding="8,0,8,0" DockPanel.Dock="Right" Click="ResetZoomBtn_Click"/>
+        </DockPanel>
+        <DockPanel HorizontalAlignment="Stretch" Margin="8, 0, 8, 8" Grid.Row="6" LastChildFill="False">
+            <Slider x:Name="PlaybackSpeedSlider" DockPanel.Dock="Left" Value="{Binding PlaybackFactorSliderPos, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,0,0" Width="100" Minimum="0.0" Maximum="15.0" SmallChange="0.1" LargeChange="0.5" TickFrequency="0.5"/>
+            <TextBlock x:Name="PlaybackSpeedLabel" DockPanel.Dock="Left" Text="{Binding PlaybackFactor, StringFormat={}{0:0.0}x}" VerticalAlignment="Center"/>
+            <Slider Width="100" DockPanel.Dock="Right" Value="{Binding SlowDownThresholdRel}" Minimum="0" Maximum="1" SmallChange="0.01" LargeChange="0.1"/>
+            <TextBlock Width="50" TextAlignment="Right" Margin="0,0,4,0" Text="{Binding SlowDownThresholdAbs, StringFormat={}{0:0.0}}" DockPanel.Dock="Right"/>
+            <TextBlock Text="Slowdown Threshold:" DockPanel.Dock="Right" Margin="0,0,8,0"/>
         </DockPanel>
     </Grid>
 </Window>

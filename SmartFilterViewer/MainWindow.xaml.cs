@@ -112,7 +112,6 @@ namespace SmartFilterViewer
     public class ViewModel : PropertyChangedBase
     {
         private DateTime currentDataTime;
-        private double playbackFactor;
 
         private DateTime lastTimerTick;
         private DateTime dataStartTime;
@@ -142,7 +141,21 @@ namespace SmartFilterViewer
                 Color = sensorVM.GraphColor
             });
 
-        public double PlaybackFactor { get => playbackFactor; set => SetAndNotify(value, ref playbackFactor); }
+        private double playbackFactorSliderPos;
+        public double PlaybackFactorSliderPos
+        {
+            get => playbackFactorSliderPos;
+            set
+            {
+                SetAndNotify(value, ref playbackFactorSliderPos);
+                OnNotifyPropertyChanged(nameof(PlaybackFactor));
+            }
+        }
+        public double PlaybackFactor => Math.Pow(playbackFactorSliderPos, 2);
+
+        public double SlowDownThresholdRel { get => slowDownThresholdRel; set => SetAndNotify(value, ref slowDownThresholdRel, nameof(SlowDownThresholdAbs)); }
+        public double SlowDownThresholdAbs => slowDownThresholdRel * maxValue;
+
         public TimeSpan CurrentTimestamp
         {
             get => CurrentDataTime - dataStartTime;
@@ -257,6 +270,7 @@ namespace SmartFilterViewer
 
         private GradientStopCollection gradientStops;
         private string unit;
+        private double slowDownThresholdRel;
 
         public GradientStopCollection GradientStops { get => gradientStops; set => SetAndNotify(value, ref gradientStops); }
 
@@ -264,7 +278,7 @@ namespace SmartFilterViewer
 
         public ViewModel()
         {
-            PlaybackFactor = 1;
+            PlaybackFactorSliderPos = 1;
 
             IsPaused = true;
 
@@ -306,6 +320,8 @@ namespace SmartFilterViewer
                 .Select(x => new PropertyDropdownItem { PropertyInfo = x }).ToList();
 
             PropInfo = typeof(SensorData).GetProperty(nameof(SensorData.PM2_5_ug_m3));
+
+            SlowDownThresholdRel = 0.7;
         }
 
         private void CalcMaxValiue()
@@ -316,6 +332,7 @@ namespace SmartFilterViewer
             UpdateGradientStops();
             UpdateHeatLegendTickInfos();
             UpdateGraphLegendTickInfos();
+            OnNotifyPropertyChanged(nameof(SlowDownThresholdAbs));
         }
 
         private void UpdateHeatLegendTickInfos()
@@ -401,7 +418,7 @@ namespace SmartFilterViewer
             var newTickInfos = new List<TickInfo>();
             if (tickCount == 1)
             {
-                newTickInfos.Add(new TickInfo { Pos = 1 , Label = TimeSpan.FromMilliseconds(dataTimeInMillisec).NegativeFormat(@"hh\:mm\:ss") });
+                newTickInfos.Add(new TickInfo { Pos = 1, Label = TimeSpan.FromMilliseconds(dataTimeInMillisec).NegativeFormat(@"hh\:mm\:ss") });
             }
             else
             {
@@ -439,9 +456,9 @@ namespace SmartFilterViewer
                 for (; i < info.DataList.Count && i <= lastLookahead; i++)
                 {
                     SensorData record = info.DataList[i];
-                    if (GetValue(record) > 0.4 * maxValue)
+                    if (GetValue(record) > SlowDownThresholdRel * maxValue)
                     {
-                        PlaybackFactor = Math.Min(PlaybackFactor, 1);
+                        PlaybackFactorSliderPos = Math.Min(PlaybackFactorSliderPos, 1);
                         break;
                     }
                 }
