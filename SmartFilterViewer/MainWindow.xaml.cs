@@ -576,7 +576,7 @@ namespace SmartFilterViewer
         {
             foreach (var info in ViewModel.SensorInfos)
             {
-                info.HistogramWindow.Close();
+                info.HistogramWindow.ForceClose();
             }
         }
 

@@ -62,6 +62,8 @@ namespace SmartFilterViewer
     /// </summary>
     public partial class HistogramWindow : Window
     {
+        private bool forceClose;
+
         private double maxValue;
         private Brush barBrush;
 
@@ -104,6 +106,8 @@ namespace SmartFilterViewer
         public HistogramWindow()
         {
             InitializeComponent();
+
+            forceClose = false;
 
             DataContext = new HistogramViewModel();
         }
@@ -194,7 +198,13 @@ namespace SmartFilterViewer
                 return null;
             }, null);
 
-            e.Cancel = true;
+            e.Cancel = !forceClose;
+        }
+
+        public void ForceClose()
+        {
+            forceClose = true;
+            Close();
         }
 
         private void Window_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
