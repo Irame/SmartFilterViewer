@@ -53,6 +53,8 @@ namespace SmartFilterViewer
 
         public Color ShapeColor { get => shapeColor; set => SetAndNotify(value, ref shapeColor); }
 
+        public bool IsGraphVisible { get; set; } = true;
+
         public HistogramWindow HistogramWindow { get; set; } = new HistogramWindow();
 
         public void LoadDataFromUserFile()
@@ -135,7 +137,7 @@ namespace SmartFilterViewer
         public bool IsPaused { get => isPaused; private set => SetAndNotify(value, ref isPaused); }
 
         public IEnumerable<TimelineGraphData> TimelineGraphData =>
-            ValidSensorInfos.Select(sensorVM => new TimelineGraphData
+            ValidSensorInfos.Where(s => s.IsGraphVisible).Select(sensorVM => new TimelineGraphData
             {
                 Data = sensorVM.DataList.Select(dataPoint => new Point((dataPoint.DateTime - dataStartTime).TotalMilliseconds / dataTimeInMillisec, (double)propInfo.GetValue(dataPoint) / maxValue)).ToList(),
                 Color = sensorVM.GraphColor
@@ -542,6 +544,11 @@ namespace SmartFilterViewer
             {
                 sensorViewModel.ShowHistogram();
             }
+            else if (mouseButton == MouseButton.Middle)
+            {
+                sensorViewModel.IsGraphVisible = !sensorViewModel.IsGraphVisible;
+                OnNotifyPropertyChanged(nameof(TimelineGraphData));
+            }
         }
     }
 
@@ -595,21 +602,21 @@ namespace SmartFilterViewer
             ViewModel.StopAnimation();
         }
 
-        private void Sensor_MouseDown(object sender, MouseButtonEventArgs e)
+        private void Sensor_MouseDown(object sensor, MouseButtonEventArgs e)
         {
-            (sender as Shape).CaptureMouse();
+            (sensor as Sensor).CaptureMouse();
         }
 
         private void Sensor_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            var shape = sender as Shape;
+            var sensor = sender as Sensor;
 
-            if (shape.IsMouseCaptured)
+            if (sensor.IsMouseCaptured)
             {
-                shape.ReleaseMouseCapture();
+                sensor.ReleaseMouseCapture();
 
-                if (shape.IsMouseOver)
-                    ViewModel.OnSensorClicked(shape.DataContext as SensorViewModel, e.ChangedButton);
+                if (sensor.IsMouseOver)
+                    ViewModel.OnSensorClicked(sensor.DataContext as SensorViewModel, e.ChangedButton);
             }
         }
 

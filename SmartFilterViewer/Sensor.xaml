@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="SmartFilterViewer.Sensor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SmartFilterViewer" 
+             xmlns:converter="clr-namespace:SmartFilterViewer.Converter"
+             mc:Ignorable="d" 
+             d:DesignHeight="50" d:DesignWidth="50"
+             d:DataContext="{d:DesignInstance Type=local:SensorViewModel, IsDesignTimeCreatable=True}">
+    <UserControl.Resources>
+        <converter:ColorToSolidColorBrushValueConverter  x:Key="ColorToSolidColorBrush_ValueConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Ellipse VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{Binding ShapeColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" Stroke="{Binding GraphColor, Converter={StaticResource ColorToSolidColorBrush_ValueConverter}}" StrokeThickness="3"/>
+    </Grid>
+</UserControl>
