@@ -13,5 +13,15 @@ namespace SmartFilterViewer
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            AppDomain.CurrentDomain.UnhandledException += (s, a) =>
+            {
+                if (a.ExceptionObject is Exception e)
+                {
+                    MessageBox.Show(e.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            };
+        }
     }
 }
